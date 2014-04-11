@@ -35,11 +35,14 @@ while keeping and detecting that choice in the reversal of process steps.
 
 As a consequence of the implementation method, and because such things are good in standards,
 an encryption unit is provided. This unit is independant of rub, and feel free to use it.
-the encryption supports RSA upto 4096 bit keys, but do be warned that not many checks are performed
+The encryption supports RSA upto 4096 bit keys, but do be warned that not many checks are performed
 on the security of the key to cryptanalysis. For variety the ElGamal encryption method over a cyclic modulo group is also
 included. There is little need for the multi-precision library to extend beyond 4096 bits. (1 disk sector)
 
 The production aim was a single binary file whi9ch is used from the command line. There are no plans
 to extend this project beyond this design goal. I may do other projects based on this one, but they
 maybe paid for software. This is a project about a usable command line binary. Something perhaps
-to be improved by a script wrapper, which would never be in this project.
+to be improved by a script wrapper, which would never be in this project. The secret key for
+encryption is *my.secret*, while the public key is called *my.rub*, and they are both by default
+in the *~/.rub* directory. To be honest I don't give a flying about Windoze, so won't be giving a flying about 
+this Unix biased implementation.
