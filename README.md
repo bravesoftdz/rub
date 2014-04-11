@@ -39,10 +39,14 @@ The encryption supports RSA upto 4096 bit keys, but do be warned that not many c
 on the security of the key to cryptanalysis. For variety the ElGamal encryption method over a cyclic modulo group is also
 included. There is little need for the multi-precision library to extend beyond 4096 bits. (1 disk sector)
 
-The production aim was a single binary file whi9ch is used from the command line. There are no plans
+The production aim was a single binary file which is used from the command line. There are no plans
 to extend this project beyond this design goal. I may do other projects based on this one, but they
 maybe paid for software. This is a project about a usable command line binary. Something perhaps
 to be improved by a script wrapper, which would never be in this project. The secret key for
 encryption is *my.secret*, while the public key is called *my.rub*, and they are both by default
 in the *~/.rub* directory. To be honest I don't give a flying about Windoze, so won't be giving a flying about 
 this Unix biased implementation.
+
+Pascal (structure) -> Java (security) -> C (speedsifics) -> ASM (ISA)
+
+But are we there yet?
