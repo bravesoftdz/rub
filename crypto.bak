@@ -6,7 +6,6 @@ interface
         const
                 upper = 255;
         type
-                (* i seem to have this as little endian cardinal ordering *)
                 value = array [0 .. upper] of cardinal;
                 key = record
                         (* public *)
@@ -37,7 +36,7 @@ interface
         function add(value, value): value;
         function mul(value, value): value;
         function sqr(value): value;
-        function setModulus(value): value; (* old *)
+        function setModulus(value): value; (* old (using zero as none) *)
         function negate(value): value;
 
         (* more advanced functions *)
@@ -115,16 +114,5 @@ implementation
                 for i = 0 to upper do
                         a[i] := not a[i];
                 addt(a, one, false);
-        end;
-
-        function setModulus(a: value): value;
-        var
-                i: integer;
-        begin
-                for i = 0 to upper do
-                        one[i] := 0;
-                one[0] := 1;
-                modulus := a;
-                iModulus := negate(a);
         end;
 end.
