@@ -99,8 +99,9 @@ implementation
 
         procedure round(var a: value);
         begin
-                while greater(a, modulus) do
-                        a := addt(a, iModulus, false);
+                if greater(modulus, one) then (* zero is no modulus *)
+                        while greater(a, modulus) do
+                                a := addt(a, iModulus, false);
         end;
 
         function add(a: value, b: value, d: boolean): value;
