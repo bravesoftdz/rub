@@ -36,16 +36,15 @@ interface
         (* arithmetic functions *)
         function add(value, value): value;
         function mul(value, value): value;
-        function sqr(value): value;
         function setModulus(value): value; (* old *)
         function negate(value): value;
 
         (* more advanced functions *)
-        function power(value, value): value;
         function divide(value, value): value;
+        function power(value, value): value;
         function gcd(value, value): value;
         function inverse(value): value;
-        function greater(value, value): boolean;
+        function greater(value, value): boolean; (* or equal to *)
 
 implementation
         uses base64;
@@ -93,7 +92,7 @@ implementation
                                 exit;
                         end;
                 end;
-                greater := false;
+                greater := true; (* should make 0 *)
         end;
 
         procedure round(var a: value);
@@ -127,4 +126,33 @@ implementation
                 modulus := a;
                 iModulus := negate(a);
         end;
+
+        function mul(a: value, b: value): value;
+        var
+                i: integer;
+                f: boolean;
+        begin
+                mul := addt(modulus, iModulus, false); (* zero *)
+                for i = 0 to (upper+1)*32-1 do
+                begin
+                        if a[i div 32] and (1 << (i mod 32))  then f := true; else f := false;
+                        if f then mul := add(mul, b);
+                        b := add(b, b); (* effective shift under modulo field *)
+                end;
+        end;
+
+        function power(a: value, b: value): value;
+        var
+                i: integer;
+                f: boolean;
+        begin
+                power := one;
+                for i = 0 to (upper+1)*32-1 do
+                begin
+                        if a[i div 32] and (1 << (i mod 32))  then f := true; else f := false;
+                        if f then power := mul(power, b);
+                        b := mul(b, b); (* effective square under modulo field *)
+                end;
+        end;
+
 end.
