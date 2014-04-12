@@ -37,9 +37,11 @@ interface
         function add(value, value): value;
         function mul(value, value): value;
         function setModulus(value): value; (* old *)
-        function negate(value): value;
+        function negate(value): value; (* not a modulo negate, but for subtraction *)
+        function sub(value, value): value;
 
         (* more advanced functions *)
+        function modulo(value, value): value;
         function divide(value, value): value;
         function power(value, value): value;
         function gcd(value, value): value;
@@ -120,11 +122,22 @@ implementation
         var
                 i: integer;
         begin
+                setModulus := modulus; (* save it *)
                 for i = 0 to upper do
                         one[i] := 0;
                 one[0] := 1;
                 modulus := a;
                 iModulus := negate(a);
+        end;
+
+        function sub(a: value, b: value): value;
+        begin
+                sub := addt(a, negate(b), false);
+                if greater(b, a) then
+                begin
+                        (* remap the negative *)
+                        sub := addt(sub, modulus, false);
+                end;
         end;
 
         function mul(a: value, b: value): value;
@@ -155,4 +168,53 @@ implementation
                 end;
         end;
 
+        function modulo(a: value, b: value): value;
+        begin
+
+        end;
+
+        function divide(a; value, b: value): value;
+        begin
+
+        end;
+
+        function gcdt(a: value, b: value, c: boolean): value;
+        var
+                t, newt, q: value;
+        begin
+                t := 0;
+                newt := 1;
+                if greater(b, a) then
+                begin
+                        gcd := a;
+                        a := b;
+                        b := gcd; (* swap *)
+                end;
+                while b <> 0 do
+                begin
+                        gcd := modulo(a, b);
+                        q := divide(a, b);
+                        a := b;
+                        b := gcd;
+                        gcd := newt;
+                        newt := sub(t, mul(q, newt));
+                        t := gcd;
+                end;
+                gcd := a;
+                (* inv or not *)
+
+                if old_r > 1 then return "a is not invertible";
+                if old_t < 0 then old_t := old_t + n;
+                inverse := old_t;
+        end;
+
+        function gcd(a: value, b: value): value;
+        begin
+                gcdt(a, b, false);
+        end;
+
+        function inverse(a: value, b: value): value;
+        begin
+                gcdt(a, b, true);
+        end;
 end.
