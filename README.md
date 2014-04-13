@@ -49,4 +49,11 @@ this Unix biased implementation.
 
 Pascal (structure) -> Java (security) -> C (speedsifics) -> ASM (ISA)
 
-But are we there yet?
+But are we there yet? Units included are
+
+  * modulo - 4096 bit cyclic group arithmetic
+  * crypto - RSA and ElGamal encryption
+  * rubutil - utilities for rub
+  * rub - the main rub unit
+
+A .pas for a CLI version of rub completes the project.
