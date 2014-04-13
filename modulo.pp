@@ -151,10 +151,9 @@ implementation
         var
                 i: integer;
                 f: boolean;
-                q, r, tmp: value;
+                r, tmp: value;
         begin
                 r := zero;
-                q := zero;
                 tmp := setModulus(zero);
                 for i = 0 to (upper+1)*32-1 do
                 begin
@@ -162,14 +161,13 @@ implementation
                         if (a[upper] and (1 << 31)) <> 0 then
                                 r := add(r, one);
                         a := add(a, a); (* shift *)
-                        q := add(q, q); (* also *)
                         r := sub(r, b);
                         if nogo then
                                 r := add(r, b); (* add back *)
                         else
-                                q := add(q, one); (* divides *)
+                                a := add(a, one); (* divides *)
                 end;
-                pair[0] := q;
+                pair[0] := a;
                 pair[1] := r;
                 temp := setModulus(tmp);
         end;

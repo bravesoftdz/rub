@@ -8,9 +8,13 @@ interface
                 (* i seem to have this as little endian cardinal ordering *)
                 key = record
                         (* public *)
-                        kModulus: value;
+                        kModulus: value; (* q *)
+                        kCrypt: value; (* g *)
+                        kH: value; (* ElGamal g^x mod q => rsa public key signed *)
 
                         (* private *)
+                        rsa: boolean; (* true? *)
+                        kDecrypt: value; (* x *) (* in rsa, uses lcm((p-1)(q-1)) method *)
 
                 end;
 
@@ -18,10 +22,9 @@ interface
         function encrypt(value, key): value; (* public *)
         function decrypt(value, key): value; (* private *)
         function loadPubKey(string): key;
-        function savePubKey(key0: string;
+        function savePubKey(key): string;
         function loadPrivKey(string): key;
         function savePrivKey(key): string;
-        function mergePubPriv(key, key): key;
         function createKey(): key;
 
         (* value loading functions *)
