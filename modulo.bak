@@ -247,7 +247,7 @@ implementation
                 if not c then gcdt := a;
                 (* inv or not *)
                 if c then gcdt := t;
-                if not s then gcdt := add(gcdt, temp);
+                if s then gcdt := add(gcdt, temp);
                 if (greater(sub(a, one), one) and c) then gcdt := zero; (* no inverse *)
                 temp := setModulus(temp);
         end;
