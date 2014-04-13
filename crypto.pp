@@ -1,5 +1,17 @@
 unit crypto
         (* this unit implements cryptography using 2 simple-ish systems known as RSA and ElGamal (cyclic group)  *)
+        (* the lowering of the possible options to search by having kH focused multi algorithm keys does apparently
+        reduse the the essential security of the methods. this apparent insecurity is purely a matter of raising
+        the key size. the fact that an interpolation (1 bit stylee) manugactures with an IDEA (multi key mix)
+        to provide good security on another key, or key set. multi session archives can benefit from the pattern
+        of digitally keying the algorithm interpolation determinacy. also (in reverse), the choice of two decodings,
+        one of which is correct, produce a subcode bitstream. approximating the "over key" as an algorithm switch,
+        does allow the full cryptographic advantage of a key bit size. this is called postamble dominance crypto. *)
+
+        (* this file does not do half of the above. it's a foundation modelling unit. the minimal key entity minima
+        is bulk amplified via array. to detactch the two algorithms too much via another key value, is wasting the
+        arrayed by over key, key switching efficiency. but that's another unit. *)
+
         uses base64, modulo;
 
 interface

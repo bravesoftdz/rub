@@ -10,7 +10,7 @@ interface
                         (* public *)
                         kModulus: value; (* q *)
                         kCrypt: value; (* g *)
-                        kH: value; (* ElGamal *)
+                        kH: value; (* ElGamal g^x mod q => rsa public key signed *)
 
                         (* private *)
                         rsa: boolean; (* true? *)
