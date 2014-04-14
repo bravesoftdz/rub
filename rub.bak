@@ -1,7 +1,9 @@
-unit rub;
-        (* this unit implements the main bulk of the rubikon data compression system *)
-interface
+program rub;
+        (* this is the rub command line utility *)
 
-implementation
+        (*     rub [-b] [-z] [-m] [-s] [-e <.pub>] [-v] [-r] [-a] [-d] [-c] [-m] [-z] [-b]      *)
+
+        uses rubutil;
+begin
 
 end.
