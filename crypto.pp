@@ -31,8 +31,8 @@ interface
                 end;
 
         (* key and general encryption fiunctions *)
-        function encrypt(value, key): value; (* public *)
-        function decrypt(value, key): value; (* private *)
+        function encrypt(a: value, k: key): pair; (* public *)
+        function decrypt(a: pair, k: key): value; (* private *)
         function loadPubKey(string): key;
         function savePubKey(key): string;
         function loadPrivKey(string): key;
@@ -49,4 +49,37 @@ interface
 
 implementation
 
+        function random(a: value): value;
+        begin
+
+        end;
+
+        function encrypt(a: value, k: key): pair; (* public *)
+        begin
+                setModulus(k.kModulus);
+                if k.rsa then
+                begin
+                        encrypt[0] := power(a, k.kCrypt);
+                end
+                else
+                begin
+                        var y: value;
+                        y := random(a);
+                        encrypt[1] := mul(power(k.kH, y), a); (* c2 *)
+                        encrypt[0] := power(k.kCrypt, y); (* c1 *)
+                end;
+        end;
+
+        function decrypt(a: pair, k: key): value; (* private *)
+        begin
+                setModulus(k.kModulus);
+                if k.rsa then
+                begin
+                        decrypt := power(a[0], k.kDecrypt);
+                end
+                else
+                begin
+                        decrypt := mul(a[1], power(a[0], sub(k.kModulus, k.kDecrypt)));
+                end;
+        end;
 end.
