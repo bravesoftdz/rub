@@ -21,7 +21,7 @@ interface
                 key = record
                         (* public *)
                         kModulus: value; (* q *)
-                        kCrypt: value; (* g *)
+                        kCrypt: value; (* g *) (* this must be both coprime to kModulus and phi(kModulus) *)
                         kH: value; (* ElGamal g^x mod q => rsa public key signed *)
 
                         (* private *)
@@ -37,7 +37,7 @@ interface
         function savePubKey(key): string;
         function loadPrivKey(string): key;
         function savePrivKey(key): string;
-        function createKey(): key;
+        function createKey: key;
 
         (* value loading functions *)
         function load(string): value;
@@ -48,8 +48,16 @@ interface
         function splitDecrypt(array of value, key): array of value;
 
 implementation
-
         function random(a: value): value;
+        var
+                i: integer;
+        begin
+                randomize;
+                for i = 0 to upper do
+                        random[i] := random[i] xor random(cardinal(not 0));
+        end;
+
+        function createKey: key;
         begin
 
         end;
@@ -63,10 +71,9 @@ implementation
                 end
                 else
                 begin
-                        var s, y: value;
+                        var y: value;
                         y := random(a);
-                        s := power(k.kH, y);
-                        encrypt[1] := mul(s, a); (* c2 *)
+                        encrypt[1] := mul(power(k.kH, y), a); (* c2 *)
                         encrypt[0] := power(k.kCrypt, y); (* c1 *)
                 end;
         end;

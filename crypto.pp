@@ -21,35 +21,49 @@ interface
                 key = record
                         (* public *)
                         kModulus: value; (* q *)
-                        kCrypt: value; (* g *)
+                        kCrypt: value; (* g *) (* this must be both coprime to kModulus and phi(kModulus) *)
                         kH: value; (* ElGamal g^x mod q => rsa public key signed *)
 
                         (* private *)
                         rsa: boolean; (* true? *)
-                        kDecrypt: value; (* x *) (* in rsa, uses lcm((p-1)(q-1)) method *)
+                        kDecrypt: value; (* x *) (* in rsa, uses lcm((p-1)(q-1)) method => more x choices *)
 
                 end;
 
         (* key and general encryption fiunctions *)
         function encrypt(a: value, k: key): pair; (* public *)
         function decrypt(a: pair, k: key): value; (* private *)
-        function loadPubKey(string): key;
-        function savePubKey(key): string;
-        function loadPrivKey(string): key;
-        function savePrivKey(key): string;
-        function createKey(): key;
+        function loadPubKey(s: string): key;
+        function savePubKey(k; key): string;
+        function loadPrivKey(s: string): key;
+        function savePrivKey(k: key): string;
+        function createKey: key;
+        function makePrime: value;
 
         (* value loading functions *)
-        function load(string): value;
-        function save(string): value;
-        function splitLoad(string): array of value; (* must set modulus before this *)
-        function splitSave(array of value): string;
-        function splitEncrypt(array of value, key): array of value;
-        function splitDecrypt(array of value, key): array of value;
+        function load(s: string): value;
+        function save(a: value): string;
+        function splitLoad(s: string): array of value; (* must set modulus before this *)
+        function splitSave(a: array of value): string;
+        function splitEncrypt(a: array of value, k: key): array of value;
+        function splitDecrypt(a: array of value, k: key): array of value;
 
 implementation
+        function randomz(a: value): value;
+        var
+                i: integer;
+        begin
+                randomize;
+                for i = 0 to upper do
+                        random[i] := random[i] xor random(cardinal(not 0));
+        end;
 
-        function random(a: value): value;
+        function makePrime: value;
+        begin
+
+        end;
+
+        function createKey: key;
         begin
 
         end;
@@ -60,13 +74,14 @@ implementation
                 if k.rsa then
                 begin
                         encrypt[0] := power(a, k.kCrypt);
+                        encrypt[1] := power(k.kH, randomz(a)); (* algorithm blur! *)
                 end
                 else
                 begin
                         var y: value;
-                        y := random(a);
-                        encrypt[1] := mul(power(k.kH, y), a); (* c2 *)
+                        y := randomz(a);
                         encrypt[0] := power(k.kCrypt, y); (* c1 *)
+                        encrypt[1] := mul(power(k.kH, y), a); (* c2 *)
                 end;
         end;
 
