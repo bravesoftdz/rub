@@ -27,7 +27,7 @@ interface
                         (* private *)
                         rsa: boolean; (* true? *)
                         kDecrypt: value; (* x *) (* in rsa, uses lcm((p-1)(q-1)) method => more x choices *)
-
+                        kPhi: value; (* phi of the modulus, needed for ElGamal signatures *)
                 end;
 
         (* key and general encryption fiunctions *)
