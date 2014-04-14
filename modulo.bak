@@ -9,7 +9,7 @@ unit modulo
 {$Q-}
 interface
         const
-                upper = 255;
+                upper = 127;
         type
                 (* i seem to have this as little endian cardinal ordering *)
                 value = array [0 .. upper] of cardinal;
@@ -146,9 +146,9 @@ implementation
                 mul := zero;
                 for i = 0 to (upper+1)*32-1 do
                 begin
-                        if (a[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
-                        if f then mul := add(mul, b);
-                        b := add(b, b); (* effective shift under modulo field *)
+                        if (b[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
+                        if f then mul := add(mul, a);
+                        a := add(a, a); (* effective shift under modulo field *)
                 end;
         end;
 
@@ -160,9 +160,9 @@ implementation
                 power := one;
                 for i = 0 to (upper+1)*32-1 do
                 begin
-                        if (a[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
-                        if f then power := mul(power, b);
-                        b := mul(b, b); (* effective square under modulo field *)
+                        if (b[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
+                        if f then power := mul(power, a);
+                        a := mul(a, a); (* effective square under modulo field *)
                 end;
         end;
 

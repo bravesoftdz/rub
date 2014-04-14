@@ -138,32 +138,28 @@ implementation
                 end;
         end;
 
-        function mul(a: value, b: value): value;
+        function mult(a: value, b: value, function q(c: value, d: value, e: value): value): value;
         var
                 i: integer;
                 f: boolean;
         begin
-                mul := zero;
+                mult := e;
                 for i = 0 to (upper+1)*32-1 do
                 begin
                         if (b[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
-                        if f then mul := add(mul, a);
-                        a := add(a, a); (* effective shift under modulo field *)
+                        if f then mult := q(mult, a);
+                        a := q(a, a); (* effective shift under modulo field *)
                 end;
         end;
 
-        function power(a: value, b: value): value;
-        var
-                i: integer;
-                f: boolean;
+        function mul(a: value, b: value): value;
         begin
-                power := one;
-                for i = 0 to (upper+1)*32-1 do
-                begin
-                        if (b[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
-                        if f then power := mul(power, a);
-                        a := mul(a, a); (* effective square under modulo field *)
-                end;
+                mult(a, b, add, zero);
+        end;
+
+        function power(a: value, b: value): value;
+        begin
+                mult(a, b, mul, one);
         end;
 
         function divide(a; value, b: value): pair;
