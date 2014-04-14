@@ -23,6 +23,10 @@ interface
         function inverse(a: value): value;
         function greater(a: value, b: value): boolean; (* or equal to *)
 
+        (* utility *)
+        function getZero: value;
+        function getOne: value;
+
 implementation
         var
                 iModulus: value; (* two's complement modulus *)
@@ -31,6 +35,15 @@ implementation
                 one: value;
                 nogo: boolean;
 
+        function getZero: value;
+        begin
+                getZero := zero;
+        end;
+
+        function getOne: value;
+        begin
+                getOne := one;
+        end;
         function addc(a: cardinal, b: cardinal, c: cardinal): cardinal;
         var
                 tmp: QWord;
@@ -127,7 +140,7 @@ implementation
                 mul := zero;
                 for i = 0 to (upper+1)*32-1 do
                 begin
-                        if (a[i div 32] and (1 << (i mod 32))) <> 0 then f := true; else f := false;
+                        if (a[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
                         if f then mul := add(mul, b);
                         b := add(b, b); (* effective shift under modulo field *)
                 end;
@@ -141,7 +154,7 @@ implementation
                 power := one;
                 for i = 0 to (upper+1)*32-1 do
                 begin
-                        if (a[i div 32] and (1 << (i mod 32))) <> 0 then f := true; else f := false;
+                        if (a[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
                         if f then power := mul(power, b);
                         b := mul(b, b); (* effective square under modulo field *)
                 end;
@@ -163,7 +176,7 @@ implementation
                         a := add(a, a); (* shift *)
                         r := sub(r, b);
                         if nogo then
-                                r := add(r, b); (* add back *)
+                                r := add(r, b) (* add back *)
                         else
                                 a := add(a, one); (* divides *)
                 end;

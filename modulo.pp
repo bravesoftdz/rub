@@ -1,6 +1,12 @@
 unit modulo
-        (* this unit implements modulo arithmetic for RSA and ElGamal (cyclic group)  *)
+        (* this unit implements modulo arithmetic for RSA and ElGamal (cyclic group) *)
 
+        (* this unit can easily be used to support other units which need limited 4096 cardinals (a.k.a. value)
+        it has not been fully optimized, and the modulus must be set before performing operations. please note
+        that negate results should be used with caution as the rounding process can take a while if certain size
+        constraints are not met. this is why it has been commented out of the interface. it is suggested that
+        the divide function is used rarely, but always before rescaling a number to another modulus. *)
+{$Q-}
 interface
         const
                 upper = 255;
@@ -13,7 +19,7 @@ interface
         function add(a: value, b: value): value;
         function mul(a: value, b: value): value;
         function setModulus(a: value): value; (* old *)
-        function negate(a: value): value; (* not a modulo negate, but for subtraction *)
+        (* function negate(a: value): value; (* not a modulo negate, but for subtraction *) *)
         function sub(a: value, b: value): value;
 
         (* more advanced functions *)

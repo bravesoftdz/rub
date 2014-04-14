@@ -51,9 +51,11 @@ Pascal (structure) -> Java (security) -> C (speedsifics) -> ASM (ISA)
 
 But are we there yet? Units included are
 
-  * modulo - 4096 bit cyclic group arithmetic
-  * crypto - RSA and ElGamal encryption
+  * modulo - 4096 bit cyclic group arithmetic - not the fastest as fixed size
+  * crypto - RSA and ElGamal encryption - encryption blend feature
   * rubutil - utilities for rub
   * rub - the main rub unit
 
 A .pas for a CLI version of rub completes the project.
+
+
