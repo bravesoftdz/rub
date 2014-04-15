@@ -38,6 +38,7 @@ interface
         function decrypt(a: quad, k: key): value; (* private *)
         function sign(a: value, k: key): quad;
         function check(a: quad, k: key, b: value): boolean;
+        function stepKey(k: key): key;
 
         function loadPubKey(s: quad): key;
         function savePubKey(k; key): quad;
@@ -226,5 +227,12 @@ implementation
                 savePrivKey[0] := i;
                 savePrivKey[1] := k.kDecrypt;
                 savePrivKey[2] := k.kPhi;
+        end;
+
+        function stepKey(k: key): key;
+        begin
+                stepKey := key;
+                if k.rsa then stepKey.rsa := false;
+                if not k.rsa then stepKey.rsa := true;
         end;
 end.
