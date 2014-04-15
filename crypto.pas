@@ -189,5 +189,42 @@ implementation
                 i: value;
         begin
                 i := decrypttt(a, k, true, splitValue(b, false, true), splitValue(b, true, true)); (* powered to k.kCrypt *)
+                check := (i = zero);
+        end;
+
+        function loadPubKey(s: quad): key;
+        begin
+                loadPubKey.kModulus := s[0];
+                loadPubKey.kCrypt := s[1];
+                loadPubKey.kH := s[2];
+        end;
+
+        function savePubKey(k; key): quad;
+        begin
+                savePubKey[0] := k.kModulus;
+                savePubKey[1] := k.kCrypt;
+                savePubKey[2] := k.kH;
+        end;
+
+        function loadPrivKey(s: quad): key;
+        var
+                rsa: boolean;
+        begin
+                if s[0] = zero then rsa = true;
+                if s[0] = one then rsa = false;
+                loadPrivKey.rsa := rsa;
+                loadPrivKey.kDecrypt := s[1];
+                loadPrivKey.kPhi := s[2];
+        end;
+
+        function savePrivKey(k: key): quad;
+        var
+                i: value;
+        begin
+                if k.rsa then i := zero;
+                if not k.rsa then i := one;
+                savePrivKey[0] := i;
+                savePrivKey[1] := k.kDecrypt;
+                savePrivKey[2] := k.kPhi;
         end;
 end.

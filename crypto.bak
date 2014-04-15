@@ -39,10 +39,10 @@ interface
         function sign(a: value, k: key): quad;
         function check(a: quad, k: key, b: value): boolean;
 
-        function loadPubKey(s: string): key;
-        function savePubKey(k; key): string;
-        function loadPrivKey(s: string): key;
-        function savePrivKey(k: key): string;
+        function loadPubKey(s: quad): key;
+        function savePubKey(k; key): quad;
+        function loadPrivKey(s: quad): key;
+        function savePrivKey(k: key): quad;
         function createKey: key;
         function makePrime: value;
 
@@ -136,10 +136,10 @@ implementation
         var
                 i: pair;
         begin
-                i := encryptt(splitValue(a, false, false), k, sig);
+                i := encryptt(splitValue(a, false, sig), k, sig);
                 encrypttt[0] := i[0];
                 encrypttt[1] := i[1];
-                i := encryptt(splitValue(a, true, false), k, sig);
+                i := encryptt(splitValue(a, true, sig), k, sig);
                 encrypttt[2] := i[0];
                 encrypttt[3] := i[1];
         end;
@@ -153,8 +153,7 @@ implementation
         begin
                 (* modulus already set by decrypt *)
                 a := power(k.kCrypt, a);
-
-
+                signHelp := sub(a, b); (* zero on ok *)
         end;
 
         function decrypttt(a: quad, k: key, sig: boolean, b: value, c: value): value;
@@ -190,5 +189,34 @@ implementation
                 i: value;
         begin
                 i := decrypttt(a, k, true, splitValue(b, false, true), splitValue(b, true, true)); (* powered to k.kCrypt *)
+                check := (i = zero);
+        end;
+
+        function loadPubKey(s: quad): key;
+        begin
+                loadPubKey.kModulus := s[0];
+                loadPubKey.kCrypt := s[1];
+                loadPubKey.kH := s[2];
+        end;
+
+        function savePubKey(k; key): quad;
+        begin
+
+        end;
+
+        function loadPrivKey(s: quad): key;
+        var
+                rsa: boolean;
+        begin
+                if s[0] = zero then rsa = true;
+                if s[0] = one then rsa = false;
+                loadPrivKey.rsa := rsa;
+                loadPrivKey.kDerypt := s[1];
+                loadPrivKey.kPhi := s[2];
+        end;
+
+        function savePrivKey(k: key): quad;
+        begin
+
         end;
 end.
