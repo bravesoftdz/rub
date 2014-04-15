@@ -172,15 +172,15 @@ implementation
                 tmp := setModulus(zero);
                 for i = 0 to (upper+1)*32-1 do
                 begin
-                        r := add(r, r);
+                        r := addt(r, r, false);
                         if (a[upper] and (1 << 31)) <> 0 then
-                                r := add(r, one);
-                        a := add(a, a); (* shift *)
+                                r := addt(r, one, false);
+                        a := addt(a, a, false); (* shift *)
                         r := sub(r, b);
                         if nogo then
-                                r := add(r, b) (* add back *)
+                                r := addt(r, b, false) (* add back *)
                         else
-                                a := add(a, one); (* divides *)
+                                a := addt(a, one, false); (* divides *)
                 end;
                 pair[0] := a;
                 pair[1] := r;
@@ -232,7 +232,7 @@ implementation
                 if not c then gcdt := a;
                 (* inv or not *)
                 if c then gcdt := t;
-                if s then gcdt := add(gcdt, temp);
+                if s then gcdt := addt(negate(gcdt), temp, false); (* sign magnitude to twos complement *)
                 if (greater(sub(a, one), one) and c) then gcdt := zero; (* no inverse *)
                 temp := setModulus(temp);
         end;

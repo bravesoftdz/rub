@@ -34,35 +34,28 @@ interface
                 quad = array [0 .. 3] of value;
 
         (* key and general encryption fiunctions *)
-        function encrypt(a: value, k: key, sig: boolean): quad; (* public *)
-        function decrypt(a: quad, k: key, sig: boolean): value; (* private *)
-        function sigEqual(a: value, k: key): value; (* for checking the signature check as totient needed *)
-        (* (sigEqual(a, k) = decrypt(encrypt(a, k, true), k, true)) = true  *)
+        function encrypt(a: value, k: key): quad; (* public *)
+        function decrypt(a: quad, k: key): value; (* private *)
+        function sign(a: value, k: key): quad;
+        function check(a: quad, k: key, b: value): boolean;
 
-        function loadPubKey(s: string): key;
-        function savePubKey(k; key): string;
-        function loadPrivKey(s: string): key;
-        function savePrivKey(k: key): string;
+        function loadPubKey(s: quad): key;
+        function savePubKey(k; key): quad;
+        function loadPrivKey(s: quad): key;
+        function savePrivKey(k: key): quad;
         function createKey: key;
         function makePrime: value;
 
-        (* value loading functions *)
-        function load(s: string): value;
-        function save(a: value): string;
-        function splitLoad(s: string): array of value; (* must set modulus before this *)
-        function splitSave(a: array of value): string;
-        function splitEncrypt(a: array of value, k: key): array of value;
-        function splitDecrypt(a: array of value, k: key): array of value;
-
 implementation
-        function randomz(a: value): value;
+        function randomz(a: value, sig: boolean): value;
         var
                 i: integer;
         begin
                 randomize;
                 for i = 0 to upper-1 do
-                        random[i] := random[i] xor random(cardinal(not 0));
-                random[upper] := 0; (* botch *)
+                        randomz[i] := randomz[i] xor random(cardinal(not 0));
+                randomz[upper] := 0; (* botch *)
+                if sig then randomz = zero; (* more optimal or just random *)
         end;
 
         function makePrime: value;
@@ -90,7 +83,7 @@ implementation
                 begin
                         if not sig then
                         begin
-                                t := randomz(a);
+                                t := randomz(a, sig);
                                 encryptt[0] := power(k.kCrypt, t); (* c1 *)
                                 encryptt[1] := mul(power(k.kH, t), a); (* c2 *)
                         else
@@ -99,10 +92,11 @@ implementation
                                 encryptt[1] := zero;
                                 while encryptt[1] = zero do
                                 begin
-                                        t := randomz(a);
+                                        t := randomz(a, sig);
                                         encryptt[0] := power(k.kCrypt, t); (* c1 *)
                                         encryptt[1] := sub(a, mul(k.kDecrypt, encryptt[0]));
                                         encryptt[1] := mul(encryptt[1], inverse(t));
+                                        if not gcd(t, k.kPhi) = one then encryptt[1] = zero; (* bad random fix *)
                                 end;
                         end;
                 end;
@@ -117,7 +111,7 @@ implementation
                 begin
                         if not sig then t := k.kCrypt else t := k.kDecrypt
                         decryptt := power(a[0], t);
-                        if sig then decryptt := power(k.kCrypt, decryptt);
+                        if sig then decryptt := power(k.kCrypt, decryptt); (* match RSA to ElGamal *)
                 end
                 else
                 begin
@@ -128,29 +122,41 @@ implementation
                 end;
         end;
 
-        function splitValue(a: value, i: boolean): value;
+        function splitValue(a: value, i: boolean, sig: boolean): value;
         var
                 j, k: integer;
         begin
-                splitValue := randomz(a);
+                splitValue := randomz(a, sig);
                 if not i then k := 0 else k := (upper + 1) >> 1;
                         for j = 0 to ((upper + 1) >> 1) - 1 do
                                 splitValue[j] := a[j + k];
         end;
 
-        function encrypt(a: value, k: key, sig: boolean): quad; (* public *)
+        function encrypttt(a: value, k: key, sig: boolean): quad;
         var
                 i: pair;
         begin
-                i := encryptt(splitValue(false), k, sig);
-                encrypt[0] := i[0];
-                encrypt[1] := i[1];
-                i := encryptt(splitValue(true), k, sig);
-                encrypt[2] := i[0];
-                encrypt[3] := i[1];
+                i := encryptt(splitValue(a, false, sig), k, sig);
+                encrypttt[0] := i[0];
+                encrypttt[1] := i[1];
+                i := encryptt(splitValue(a, true, sig), k, sig);
+                encrypttt[2] := i[0];
+                encrypttt[3] := i[1];
         end;
 
-        function decrypt(a: quad, k: key, sig: boolean): value; (* private *)
+        function encrypt(a: value, k: key): quad; (* public *)
+        begin
+                encrypttt(a, k, false);
+        end;
+
+        function signHelp(a: value, b: value): value;
+        begin
+                (* modulus already set by decrypt *)
+                a := power(k.kCrypt, a);
+                signHelp := sub(a, b); (* zero on ok *)
+        end;
+
+        function decrypttt(a: quad, k: key, sig: boolean, b: value, c: value): value;
         var
                 i: pair;
                 j: value;
@@ -158,16 +164,30 @@ implementation
         begin
                 i[0] := a[0];
                 i[1] := a[1];
-                decrypt := decryptt(i, k, sig);
+                decrypttt := decryptt(i, k, sig); (* power if sig *)
+                if sig then decrypttt := signHelp(b, decrypttt);
                 i[0] := a[2];
                 i[0] := a[3];
-                j := decrypt(i, k, sig);
+                j := decrypt(i, k, sig); (* power if sig *)
+                if sig then j := signHelp(c, j);
                 for k = 0 to ((upper + 1) >> 1) - 1 do
-                                decrypt[k + ((upper + 1) >> 1)] := j[k];
+                                decrypttt[k + ((upper + 1) >> 1)] := j[k];
         end;
 
-        function sigEqual(a: value, k: key) : value;
+        function decrypt(a: quad, k: key): value; (* private *)
         begin
-                sigEqual := power(k.kCrypt, a); (* this function exists solely to match the calculated out of an ElGamal sig check with RSA *)
+                decrypttt(a, k, false, zero, zero);
+        end;
+
+        function sign(a: value, k: key): quad;
+        begin
+                encrypttt(a, k, true);
+        end;
+
+        function check(a: quad, k: key, b: value): boolean;
+        var
+                i: value;
+        begin
+                i := decrypttt(a, k, true, splitValue(b, false, true), splitValue(b, true, true)); (* powered to k.kCrypt *)
         end;
 end.
