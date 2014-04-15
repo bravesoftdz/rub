@@ -50,13 +50,16 @@ interface
 implementation
         function randomz(a: value, sig: boolean): value;
         var
-                i: integer;
+                i, j: integer;
         begin
                 randomize;
                 for i = 0 to upper-1 do
-                        randomz[i] := randomz[i] xor random(cardinal(not 0));
+                begin
+                        j := random(cardinal(not 0);
+                        if sig then j := 0; (* no random  for signature *)
+                        randomz[i] := a[upper - i] xor j;
+                end;
                 randomz[upper] := 0; (* botch *)
-                if sig then randomz = zero; (* more optimal or just random *)
         end;
 
         function makePrime: value;
@@ -65,8 +68,32 @@ implementation
         end;
 
         function createKey: key;
+        var
+                p, q: value;
         begin
-
+                setModulus(zero);
+                p := makePrime;
+                q := makePrime;
+                createKey.kModulus := mul(p, q);
+                (* modulus set *)
+                createKey.kPhi := sub(createKey.kModulus, sub(add(p, q), one));
+                (* phi set *)
+                createKey.kPhi := divide(createKey.kPhi, gcd(sub(p, one), sub(q, one)));
+                (* this ^ does the lcm carmicheal *)
+                createKey.kCrypt := randomz(zero, false);
+                (* an initial set up of the exponent *)
+                setModulus(createKey.kPhi);
+                createKey.kDecrypt := zero;
+                while createKey.kDecrypt = zero do
+                begin
+                        createKey.kCrypt := add(createKey.kCrypt, one);
+                        createKey.kDecrypt := inverse(createKey.kCrypt);
+                        if gcd(createKey.kCrypt, createKey.kPhi) <> one then createKey.kDecrypt = zero;
+                end;
+                (* set a decrypt exponent *)
+                setModulus(createKey.kModulus);
+                createKey.kH := power(createKey.kDecrypt, createKey.kCrypt);
+                (* self sign public key ^ *)
         end;
 
         function encryptt(a: value, k: key, sig: boolean): pair; (* public *)
@@ -78,13 +105,13 @@ implementation
                 begin
                         if sig then t := k.kCrypt else t := k.kDecrypt;
                         encryptt[0] := power(a, t);
-                        encryptt[1] := power(k.kH, randomz(a)); (* algorithm blur! *)
+                        encryptt[1] := power(k.kH, randomz(a, false)); (* algorithm blur! *)
                 end
                 else
                 begin
                         if not sig then
                         begin
-                                t := randomz(a, sig);
+                                t := randomz(a, false);
                                 encryptt[0] := power(k.kCrypt, t); (* c1 *)
                                 encryptt[1] := mul(power(k.kH, t), a); (* c2 *)
                         else
@@ -93,7 +120,7 @@ implementation
                                 encryptt[1] := zero;
                                 while encryptt[1] = zero do
                                 begin
-                                        t := randomz(a, sig);
+                                        t := randomz(a, false);
                                         encryptt[0] := power(k.kCrypt, t); (* c1 *)
                                         encryptt[1] := sub(a, mul(k.kDecrypt, encryptt[0]));
                                         encryptt[1] := mul(encryptt[1], inverse(t));
@@ -198,6 +225,9 @@ implementation
                 loadPubKey.kModulus := s[0];
                 loadPubKey.kCrypt := s[1];
                 loadPubKey.kH := s[2];
+                (* checks for valid keys because of halting problem *)
+                if not greater(loadPubKey.kModulus, loadPubKey.kH) then loadPubKey.kModulus := zero;
+                if power(loadPubKey.kH, loadPubKey.kCrypt) <> loadPubKey.kCrypt then loadPubKey.kModulus = zero; (* test for valid *)
         end;
 
         function savePubKey(k; key): quad;
