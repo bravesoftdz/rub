@@ -105,7 +105,7 @@ implementation
         function add(a: value; b: value; d: boolean): value;
         begin
                 add := addt(a, b, true);
-                round(add);
+                add := round(add);
         end;
 
         function negate(a: value): value;
