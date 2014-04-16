@@ -36,21 +36,21 @@ interface
                 quad = array [0 .. 3] of value;
 
         (* key and general encryption fiunctions *)
-        function encrypt(a: value, k: key): quad; (* public *)
-        function decrypt(a: quad, k: key): value; (* private *)
-        function sign(a: value, k: key): quad;
-        function check(a: quad, k: key, b: value): boolean;
+        function encrypt(a: value; k: key): quad; (* public *)
+        function decrypt(a: quad; k: key): value; (* private *)
+        function sign(a: value; k: key): quad;
+        function check(a: quad; k: key; b: value): boolean;
         function stepKey(k: key): key;
 
         function loadPubKey(s: quad): key;
-        function savePubKey(k; key): quad;
+        function savePubKey(k: key): quad;
         function loadPrivKey(s: quad): key;
         function savePrivKey(k: key): quad;
         function createKey: key;
         function makePrime: value;
 
 implementation
-        function randomz(a: value, sig: boolean): value;
+        function randomz(a: value; sig: boolean): value;
         var
                 i, j: integer;
         begin
@@ -134,7 +134,7 @@ implementation
                 end;
         end;
 
-        function encryptt(a: value, k: key, sig: boolean): pair; (* public *)
+        function encryptt(a: value; k: key; sig: boolean): pair; (* public *)
         var
                 t: value;
         begin
@@ -168,7 +168,7 @@ implementation
                 end;
         end;
 
-        function decryptt(a: pair, k: key, sig: boolean): value; (* private *)
+        function decryptt(a: pair; k: key; sig: boolean): value; (* private *)
         var
                 t: value;
         begin
@@ -188,7 +188,7 @@ implementation
                 end;
         end;
 
-        function splitValue(a: value, i: boolean, sig: boolean): value;
+        function splitValue(a: value; i: boolean; sig: boolean): value;
         var
                 j, k: integer;
         begin
@@ -198,7 +198,7 @@ implementation
                                 splitValue[j] := a[j + k];
         end;
 
-        function encrypttt(a: value, k: key, sig: boolean): quad;
+        function encrypttt(a: value; k: key; sig: boolean): quad;
         var
                 i: pair;
         begin
@@ -210,19 +210,19 @@ implementation
                 encrypttt[3] := i[1];
         end;
 
-        function encrypt(a: value, k: key): quad; (* public *)
+        function encrypt(a: value; k: key): quad; (* public *)
         begin
                 encrypttt(a, k, false);
         end;
 
-        function signHelp(a: value, b: value): value;
+        function signHelp(a: value; b: value): value;
         begin
                 (* modulus already set by decrypt *)
                 a := power(k.kCrypt, a);
                 signHelp := sub(a, b); (* zero on ok *)
         end;
 
-        function decrypttt(a: quad, k: key, sig: boolean, b: value, c: value): value;
+        function decrypttt(a: quad; k: key; sig: boolean; b: value; c: value): value;
         var
                 i: pair;
                 j: value;
@@ -240,17 +240,17 @@ implementation
                                 decrypttt[k + ((upper + 1) >> 1)] := j[k];
         end;
 
-        function decrypt(a: quad, k: key): value; (* private *)
+        function decrypt(a: quad; k: key): value; (* private *)
         begin
                 decrypttt(a, k, false, zero, zero);
         end;
 
-        function sign(a: value, k: key): quad;
+        function sign(a: value; k: key): quad;
         begin
                 encrypttt(a, k, true);
         end;
 
-        function check(a: quad, k: key, b: value): boolean;
+        function check(a: quad; k: key; b: value): boolean;
         var
                 i: value;
         begin
@@ -270,7 +270,7 @@ implementation
                 loadPubKey.kRub := s[3];
         end;
 
-        function savePubKey(k; key): quad;
+        function savePubKey(k: key): quad;
         begin
                 savePubKey[0] := k.kModulus;
                 savePubKey[1] := k.kCrypt;

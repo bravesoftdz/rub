@@ -19,18 +19,18 @@ interface
         between the forward definition and implementation *)
 
         (* arithmetic functions *)
-        function add(a: value, b: value): value;
-        function mul(a: value, b: value): value;
+        function add(a: value; b: value): value;
+        function mul(a: value; b: value): value;
         function setModulus(a: value): value; (* old *)
         (* function negate(a: value): value; (* not a modulo negate, but for subtraction *) *)
-        function sub(a: value, b: value): value;
+        function sub(a: value; b: value): value;
 
         (* more advanced functions *)
-        function divide(a: value, b: value): pair; (* 0 = quotient, 1 = remainder *)
-        function power(a: value, b: value): value;
-        function gcd(a: value, b: value): value;
+        function divide(a: value; b: value): pair; (* 0 = quotient, 1 = remainder *)
+        function power(a: value; b: value): value;
+        function gcd(a: value; b: value): value;
         function inverse(a: value): value;
-        function greater(a: value, b: value): boolean; (* or equal to *)
+        function greater(a: value; b: value): boolean; (* or equal to *)
 
         (* utility *)
         function getZero: value;
@@ -53,7 +53,7 @@ implementation
         begin
                 getOne := one;
         end;
-        function addc(a: cardinal, b: cardinal, c: cardinal): cardinal;
+        function addc(a: cardinal; b: cardinal; c: cardinal): cardinal;
         var
                 tmp: QWord;
         begin
@@ -61,7 +61,7 @@ implementation
                 addc := tmp >> 32;
         end;
 
-        function addt(a: value, b: value, d: boolean): value;
+        function addt(a: value; b: value; d: boolean): value;
         var
                 i: integer;
                 c: cardinal = 0;
@@ -74,7 +74,7 @@ implementation
                 if d and c <> 0 then addt := addt(addt, iModulus, false); (* horrid nest fix *)
         end;
 
-        function greater(a: value, b: value): boolean;
+        function greater(a: value; b: value): boolean;
         var
                 i: integer;
         begin
@@ -102,7 +102,7 @@ implementation
                                 a := addt(round, iModulus, false);
         end;
 
-        function add(a: value, b: value, d: boolean): value;
+        function add(a: value; b: value; d: boolean): value;
         begin
                 add := addt(a, b, true);
                 round(add);
@@ -130,7 +130,7 @@ implementation
                 iModulus := negate(a);
         end;
 
-        function sub(a: value, b: value): value;
+        function sub(a: value; b: value): value;
         begin
                 sub := addt(a, negate(b), false);
                 nogo := false;
@@ -142,7 +142,7 @@ implementation
                 end;
         end;
 
-        function mult(a: value, b: value, q: function (c: value, d: value): value, e: value): value;
+        function mult(a: value; b: value; q: function (c: value; d: value): value; e: value): value;
         var
                 i: integer;
                 f: boolean;
@@ -156,18 +156,18 @@ implementation
                 end;
         end;
 
-        function mul(a: value, b: value): value;
+        function mul(a: value; b: value): value;
         begin
                 (* mult(a, b, @add(x, y), could_be_x_or_y_and_not_here); (* as what is c and d *) *)
                 mult(a, b, @add, zero);
         end;
 
-        function power(a: value, b: value): value;
+        function power(a: value; b: value): value;
         begin
                 mult(a, b, @mul, one);
         end;
 
-        function divide(a; value, b: value): pair;
+        function divide(a: value; b: value): pair;
         var
                 i: integer;
                 f: boolean;
@@ -192,7 +192,7 @@ implementation
                 temp := setModulus(tmp);
         end;
 
-        function gcdt(a: value, b: value, c: boolean): value;
+        function gcdt(a: value; b: value; c: boolean): value;
         var
                 t, newt, q, temp: value;
                 p: pair;
@@ -242,7 +242,7 @@ implementation
                 temp := setModulus(temp);
         end;
 
-        function gcd(a: value, b: value): value;
+        function gcd(a: value; b: value): value;
         begin
                 gcdt(a, b, false);
         end;
