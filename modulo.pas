@@ -1,4 +1,4 @@
-unit modulo
+unit modulo;
         (* this unit implements modulo arithmetic for RSA and ElGamal (cyclic group) *)
 
         (* this unit can easily be used to support other units which need limited 4096 cardinals (a.k.a. value)
@@ -36,7 +36,12 @@ interface
         function getZero: value;
         function getOne: value;
 
+        function equal(a: value; b: value): boolean;
+
 implementation
+        type
+                fType = function (a, b: value): value;
+
         var
                 iModulus: value; (* two's complement modulus *)
                 modulus: value;
@@ -53,6 +58,7 @@ implementation
         begin
                 getOne := one;
         end;
+
         function addc(a: cardinal; b: cardinal; c: cardinal): cardinal;
         var
                 tmp: QWord;
@@ -64,21 +70,22 @@ implementation
         function addt(a: value; b: value; d: boolean): value;
         var
                 i: integer;
-                c: cardinal = 0;
+                c: cardinal;
         begin
-                for i = 0 to upper do
+                c := 0;
+                for i := 0 to upper do
                 begin
                         addt[i] := a[i] + b[i] + c;
                         c := addc(a[i], b[i], c);
                 end;
-                if d and c <> 0 then addt := addt(addt, iModulus, false); (* horrid nest fix *)
+                if d and (c <> 0) then addt := addt(addt, iModulus, false); (* horrid nest fix *)
         end;
 
         function greater(a: value; b: value): boolean;
         var
                 i: integer;
         begin
-                for i = upper downto 0 do
+                for i := upper downto 0 do
                 begin
                         if a[i] < b[i] then
                         begin
@@ -94,6 +101,11 @@ implementation
                 greater := true; (* should make 0 *)
         end;
 
+        function equal(a: value; b: value): boolean;
+        begin
+                equal := greater(a, b) and greater(b, a);
+        end;
+
         function round(a: value): value;
         begin
                 round := a;
@@ -102,7 +114,7 @@ implementation
                                 a := addt(round, iModulus, false);
         end;
 
-        function add(a: value; b: value; d: boolean): value;
+        function add(a: value; b: value): value;
         begin
                 add := addt(a, b, true);
                 add := round(add);
@@ -112,7 +124,7 @@ implementation
         var
                 i: integer;
         begin
-                for i = 0 to upper do
+                for i := 0 to upper do
                         a[i] := not a[i];
                 addt(a, one, false);
         end;
@@ -122,7 +134,7 @@ implementation
                 i: integer;
         begin
                 setModulus := modulus; (* save it *)
-                for i = 0 to upper do
+                for i := 0 to upper do
                         zero[i] := 0;
                 one := zero;
                 one[0] := 1;
@@ -142,13 +154,13 @@ implementation
                 end;
         end;
 
-        function mult(a: value; b: value; q: function (c: value; d: value): value; e: value): value;
+        function mult(a: value; b: value; q: fType; e: value): value;
         var
                 i: integer;
                 f: boolean;
         begin
                 mult := e;
-                for i = 0 to (upper+1)*32-1 do
+                for i := 0 to (upper+1)*32-1 do
                 begin
                         if (b[i div 32] and (1 << (i mod 32))) <> 0 then f := true else f := false;
                         if f then mult := q(mult, a);
@@ -175,7 +187,7 @@ implementation
         begin
                 r := zero;
                 tmp := setModulus(zero);
-                for i = 0 to (upper+1)*32-1 do
+                for i := 0 to (upper+1)*32-1 do
                 begin
                         r := addt(r, r, false);
                         if (a[upper] and (1 << 31)) <> 0 then
@@ -187,9 +199,9 @@ implementation
                         else
                                 a := addt(a, one, false); (* divides *)
                 end;
-                pair[0] := a;
-                pair[1] := r;
-                temp := setModulus(tmp);
+                divide[0] := a;
+                divide[1] := r;
+                tmp := setModulus(tmp);
         end;
 
         function gcdt(a: value; b: value; c: boolean): value;
@@ -208,7 +220,7 @@ implementation
                         a := b;
                         b := gcdt; (* swap *)
                 end;
-                while b <> zero do
+                while not equal(b, zero) do
                 begin
                         p := divide(a, b);
                         q := p[0];
@@ -251,4 +263,7 @@ implementation
         begin
                 gcdt(a, modulus, true);
         end;
+
+begin
+
 end.

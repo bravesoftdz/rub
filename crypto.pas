@@ -1,4 +1,4 @@
-unit crypto
+unit crypto;
         (* this unit implements cryptography using 2 simple-ish systems known as RSA and ElGamal (cyclic group)  *)
 
         (* the lowering of the possible options to search by having kH focused multi algorithm keys does apparently

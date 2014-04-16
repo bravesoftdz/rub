@@ -89,6 +89,13 @@ implementation
                 end;
         end;
 
+        function stepKey(k: key): key;
+        begin
+                stepKey := key;
+                if k.rsa then stepKey.rsa := false;
+                if not k.rsa then stepKey.rsa := true;
+        end;
+
         function createKey: key;
         var
                 p, q, t, m: value;
@@ -300,12 +307,5 @@ implementation
                 savePrivKey[1] := k.kDecrypt;
                 savePrivKey[2] := k.kPhi;
                 savePrivKey[3] := k.kScore;
-        end;
-
-        function stepKey(k: key): key;
-        begin
-                stepKey := key;
-                if k.rsa then stepKey.rsa := false;
-                if not k.rsa then stepKey.rsa := true;
         end;
 end.
