@@ -15,6 +15,9 @@ interface
                 value = array [0 .. upper] of cardinal;
                 pair = array [0 .. 1] of value;
 
+        (* i do find the need to match the names of parameters more of a problem than matching types
+        between the forward definition and implementation *)
+
         (* arithmetic functions *)
         function add(a: value, b: value): value;
         function mul(a: value, b: value): value;
@@ -91,11 +94,12 @@ implementation
                 greater := true; (* should make 0 *)
         end;
 
-        procedure round(var a: value);
+        function round(a: value): value;
         begin
+                round := a;
                 if greater(modulus, one) then (* zero is no modulus *)
-                        while greater(a, modulus) do
-                                a := addt(a, iModulus, false);
+                        while greater(round, modulus) do
+                                a := addt(round, iModulus, false);
         end;
 
         function add(a: value, b: value, d: boolean): value;
@@ -138,7 +142,7 @@ implementation
                 end;
         end;
 
-        function mult(a: value, b: value, function q(c: value, d: value, e: value): value): value;
+        function mult(a: value, b: value, q: function (c: value, d: value): value, e: value): value;
         var
                 i: integer;
                 f: boolean;
@@ -154,12 +158,13 @@ implementation
 
         function mul(a: value, b: value): value;
         begin
-                mult(a, b, add, zero);
+                (* mult(a, b, @add(x, y), could_be_x_or_y_and_not_here); (* as what is c and d *) *)
+                mult(a, b, @add, zero);
         end;
 
         function power(a: value, b: value): value;
         begin
-                mult(a, b, mul, one);
+                mult(a, b, @mul, one);
         end;
 
         function divide(a; value, b: value): pair;

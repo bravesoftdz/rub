@@ -138,7 +138,7 @@ implementation
                 end;
         end;
 
-        function mult(a: value, b: value, function q(c: value, d: value, e: value): value): value;
+        function mult(a: value, b: value, q: function (c: value, d: value): value, e: value): value;
         var
                 i: integer;
                 f: boolean;
@@ -154,12 +154,13 @@ implementation
 
         function mul(a: value, b: value): value;
         begin
-                mult(a, b, add, zero);
+                (* mult(a, b, @add(x, y), could_be_x_or_y_and_not_here); (* as what is c and d *) *)
+                mult(a, b, @add, zero);
         end;
 
         function power(a: value, b: value): value;
         begin
-                mult(a, b, mul, one);
+                mult(a, b, @mul, one);
         end;
 
         function divide(a; value, b: value): pair;
@@ -232,7 +233,7 @@ implementation
                 if not c then gcdt := a;
                 (* inv or not *)
                 if c then gcdt := t;
-                if s then gcdt := add(negate(gcdt), temp); (* sign magnitude to twos complement *)
+                if s then gcdt := addt(negate(gcdt), temp, false); (* sign magnitude to twos complement *)
                 if (greater(sub(a, one), one) and c) then gcdt := zero; (* no inverse *)
                 temp := setModulus(temp);
         end;

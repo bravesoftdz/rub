@@ -24,6 +24,7 @@ interface
                         kModulus: value; (* q *)
                         kCrypt: value; (* g *) (* this must be both coprime to kModulus and phi(kModulus) *)
                         kH: value; (* ElGamal g^x mod q => rsa public key signed *)
+                        kRub: value; (* publication slot *)
 
                         (* private *)
                         rsa: boolean; (* true? *)
@@ -266,6 +267,7 @@ implementation
                 if not greater(loadPubKey.kModulus, loadPubKey.kH) then loadPubKey.kModulus := zero;
                 setModulus(loadPubKey.kModulus);
                 if power(loadPubKey.kH, loadPubKey.kCrypt) <> loadPubKey.kCrypt then loadPubKey.kModulus = zero; (* test for valid *)
+                loadPubKey.kRub := s[3];
         end;
 
         function savePubKey(k; key): quad;
@@ -273,6 +275,7 @@ implementation
                 savePubKey[0] := k.kModulus;
                 savePubKey[1] := k.kCrypt;
                 savePubKey[2] := k.kH;
+                savePubKey[3] := k.kRub;
         end;
 
         function loadPrivKey(s: quad): key;

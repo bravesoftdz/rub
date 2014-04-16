@@ -14,7 +14,7 @@ unit crypto
         arrayed by over key, key switching efficiency. but that's another unit. *)
 
         uses modulo;
-{$H+}
+
 interface
         (* all strings are base64 encoded. larger strings must be split before crypto is used. *)
         type
