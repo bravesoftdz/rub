@@ -13,10 +13,9 @@ unit crypto;
         is bulk amplified via array. to detactch the two algorithms too much via another key value, is wasting the
         arrayed by over key, key switching efficiency. but that's another unit. *)
 
+interface
         uses modulo;
 
-interface
-        (* all strings are base64 encoded. larger strings must be split before crypto is used. *)
         type
                 (* i seem to have this as little endian cardinal ordering *)
                 key = record
@@ -55,9 +54,9 @@ implementation
                 i, j: integer;
         begin
                 randomize;
-                for i = 0 to upper-1 do
+                for i := 0 to upper-1 do
                 begin
-                        j := random(cardinal(not 0);
+                        j := random(cardinal(not 0));
                         if sig then j := 0; (* no random  for signature *)
                         randomz[i] := a[upper - i] xor j;
                 end;
@@ -71,10 +70,10 @@ implementation
         begin
                 makePrime := zero;
                 n := randomz(zero, true);
-                for i = (upper + 1) >> 1 to upper do
+                for i := (upper + 1) >> 1 to upper do
                         n[i] := 0;
                 n[0] := n[0] or 1; (* make odd *)
-                while makePrime = zero do
+                while equal(makePrime, zero) do
                 begin
                         setModulus(n);
                         c := 0;
@@ -104,7 +103,7 @@ implementation
                 t := zero;
                 t[upper] := 1; (* bound check *)
                 createKey.kModulus := zero;
-                while createKey.kModulus = zero do
+                while equal(createKey.kModulus, zero) do
                         setModulus(zero);
                         p := makePrime;
                         q := makePrime;
@@ -119,7 +118,7 @@ implementation
                         (* an initial set up of the exponent *)
                         setModulus(createKey.kPhi);
                         createKey.kDecrypt := zero;
-                        while createKey.kDecrypt = zero do
+                        while equal(createKey.kDecrypt, zero) do
                         begin
                                 createKey.kCrypt := add(createKey.kCrypt, one);
                                 createKey.kDecrypt := inverse(createKey.kCrypt);
@@ -131,10 +130,10 @@ implementation
                         (* self sign public key ^ *)
                         if greater(t, createKey.kModulus) then createKey.kModulus := zero; (* not big enough *)
                         (* key test *)
-                        for i = 0 to 100 do
+                        for i := 0 to 100 do
                         begin
                                 m := randomz(zero, false);
-                                if decrypt(encrypt(m, createKey), createKey) <> m then createKey.kModulus := zero; (* bad key *)
+                                if not equal(decrypt(encrypt(m, createKey), createKey), m) then createKey.kModulus := zero; (* bad key *)
                                 createKey := stepKey(createKey);
                         end;
                         createKey.rsa := true;
@@ -163,13 +162,13 @@ implementation
                         begin
                                 setModulus(k.kPhi);
                                 encryptt[1] := zero;
-                                while encryptt[1] = zero do
+                                while equal(encryptt[1], zero) do
                                 begin
                                         t := randomz(a, false);
                                         encryptt[0] := power(k.kCrypt, t); (* c1 *)
                                         encryptt[1] := sub(a, mul(k.kDecrypt, encryptt[0]));
                                         encryptt[1] := mul(encryptt[1], inverse(t));
-                                        if not gcd(t, k.kPhi) = one then encryptt[1] = zero; (* bad random fix *)
+                                        if not equal(gcd(t, k.kPhi), one) then encryptt[1] := zero; (* bad random fix *)
                                 end;
                         end;
                 end;
@@ -201,7 +200,7 @@ implementation
         begin
                 splitValue := randomz(a, sig);
                 if not i then k := 0 else k := (upper + 1) >> 1;
-                        for j = 0 to ((upper + 1) >> 1) - 1 do
+                        for j := 0 to ((upper + 1) >> 1) - 1 do
                                 splitValue[j] := a[j + k];
         end;
 
@@ -243,7 +242,7 @@ implementation
                 i[0] := a[3];
                 j := decrypt(i, k, sig); (* power if sig *)
                 if sig then j := signHelp(c, j);
-                for k = 0 to ((upper + 1) >> 1) - 1 do
+                for k := 0 to ((upper + 1) >> 1) - 1 do
                                 decrypttt[k + ((upper + 1) >> 1)] := j[k];
         end;
 
@@ -273,7 +272,7 @@ implementation
                 (* checks for valid keys because of halting problem *)
                 if not greater(loadPubKey.kModulus, loadPubKey.kH) then loadPubKey.kModulus := zero;
                 setModulus(loadPubKey.kModulus);
-                if power(loadPubKey.kH, loadPubKey.kCrypt) <> loadPubKey.kCrypt then loadPubKey.kModulus = zero; (* test for valid *)
+                if not equal(power(loadPubKey.kH, loadPubKey.kCrypt), loadPubKey.kCrypt) then loadPubKey.kModulus = zero; (* test for valid *)
                 loadPubKey.kRub := s[3];
         end;
 
