@@ -64,13 +64,34 @@ implementation
         end;
 
         function makePrime: value;
+        var
+                a, n: value;
+                c, i: integer;
         begin
-
+                makePrime := zero;
+                n := randomz(zero, true);
+                for i = (upper + 1) >> 1 to upper do
+                        n[i] := 0;
+                n[0] := n[0] or 1; (* make odd *)
+                while makePrime = zero do
+                begin
+                        setModulus(n);
+                        c := 0;
+                        a := sub(n, one);
+                        while c < 100 and power (a, n) = a do (* likely prime test *)
+                        begin
+                                a := sub(a, one);
+                                c := c + 1;
+                        end;
+                        if c = 100 then makePrime := n; (* very likely prime *)
+                        n := sub(sub(n, one), one); (* next lower odd *)
+                end;
         end;
 
         function createKey: key;
         var
-                p, q, t: value;
+                p, q, t, m: value;
+                i: integer;
         begin
                 t := zero;
                 t[upper] := 1; (* bound check *)
@@ -101,6 +122,14 @@ implementation
                         createKey.kH := power(createKey.kDecrypt, createKey.kCrypt);
                         (* self sign public key ^ *)
                         if greater(t, createKey.kModulus) then createKey.kModulus := zero; (* not big enough *)
+                        (* key test *)
+                        for i = 0 to 100 do
+                        begin
+                                m := randomz(zero, false);
+                                if decrypt(encrypt(m, createKey), createKey) <> m then createKey.kModulus := zero; (* bad key *)
+                                createKey := stepKey(createKey);
+                        end;
+                        createKey.rsa := true;
                 end;
         end;
 
