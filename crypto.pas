@@ -29,6 +29,7 @@ interface
                         rsa: boolean; (* true? *)
                         kDecrypt: value; (* x *) (* in rsa, uses lcm((p-1)(q-1)) method => more x choices *)
                         kPhi: value; (* phi of the modulus, needed for ElGamal signatures *)
+                        kScore: value; (* lower is better *)
                 end;
 
                 quad = array [0 .. 3] of value;
@@ -69,31 +70,38 @@ implementation
 
         function createKey: key;
         var
-                p, q: value;
+                p, q, t: value;
         begin
-                setModulus(zero);
-                p := makePrime;
-                q := makePrime;
-                createKey.kModulus := mul(p, q);
-                (* modulus set *)
-                createKey.kPhi := sub(createKey.kModulus, sub(add(p, q), one));
-                (* phi set *)
-                createKey.kPhi := divide(createKey.kPhi, gcd(sub(p, one), sub(q, one)));
-                (* this ^ does the lcm carmicheal *)
-                createKey.kCrypt := randomz(zero, false);
-                (* an initial set up of the exponent *)
-                setModulus(createKey.kPhi);
-                createKey.kDecrypt := zero;
-                while createKey.kDecrypt = zero do
-                begin
-                        createKey.kCrypt := add(createKey.kCrypt, one);
-                        createKey.kDecrypt := inverse(createKey.kCrypt);
-                        if gcd(createKey.kCrypt, createKey.kPhi) <> one then createKey.kDecrypt = zero;
+                t := zero;
+                t[upper] := 1; (* bound check *)
+                createKey.kModulus := zero;
+                while createKey.kModulus = zero do
+                        setModulus(zero);
+                        p := makePrime;
+                        q := makePrime;
+                        createKey.kModulus := mul(p, q);
+                        (* modulus set *)
+                        createKey.kPhi := sub(createKey.kModulus, sub(add(p, q), one));
+                        (* phi set *)
+                        createKey.kScore := gcd(sub(p, one), sub(q, one));
+                        createKey.kPhi := divide(createKey.kPhi, createKey.kScore);
+                        (* this ^ does the lcm carmicheal *)
+                        createKey.kCrypt := randomz(zero, false);
+                        (* an initial set up of the exponent *)
+                        setModulus(createKey.kPhi);
+                        createKey.kDecrypt := zero;
+                        while createKey.kDecrypt = zero do
+                        begin
+                                createKey.kCrypt := add(createKey.kCrypt, one);
+                                createKey.kDecrypt := inverse(createKey.kCrypt);
+                                if gcd(createKey.kCrypt, createKey.kPhi) <> one then createKey.kDecrypt = zero;
+                        end;
+                        (* set a decrypt exponent *)
+                        setModulus(createKey.kModulus);
+                        createKey.kH := power(createKey.kDecrypt, createKey.kCrypt);
+                        (* self sign public key ^ *)
+                        if greater(t, createKey.kModulus) then createKey.kModulus := zero; (* not big enough *)
                 end;
-                (* set a decrypt exponent *)
-                setModulus(createKey.kModulus);
-                createKey.kH := power(createKey.kDecrypt, createKey.kCrypt);
-                (* self sign public key ^ *)
         end;
 
         function encryptt(a: value, k: key, sig: boolean): pair; (* public *)
@@ -227,6 +235,7 @@ implementation
                 loadPubKey.kH := s[2];
                 (* checks for valid keys because of halting problem *)
                 if not greater(loadPubKey.kModulus, loadPubKey.kH) then loadPubKey.kModulus := zero;
+                setModulus(loadPubKey.kModulus);
                 if power(loadPubKey.kH, loadPubKey.kCrypt) <> loadPubKey.kCrypt then loadPubKey.kModulus = zero; (* test for valid *)
         end;
 
@@ -246,6 +255,7 @@ implementation
                 loadPrivKey.rsa := rsa;
                 loadPrivKey.kDecrypt := s[1];
                 loadPrivKey.kPhi := s[2];
+                loadPrivKey.kScore := s[3];
         end;
 
         function savePrivKey(k: key): quad;
@@ -257,6 +267,7 @@ implementation
                 savePrivKey[0] := i;
                 savePrivKey[1] := k.kDecrypt;
                 savePrivKey[2] := k.kPhi;
+                savePrivKey[3] := k.kScore;
         end;
 
         function stepKey(k: key): key;
