@@ -1,11 +1,12 @@
 program rub;
         (* this is the rub command line utility *)
 
-        (*     rub [-b] [-z] [-m] [-s] [-e <.rub>] [-v] [-r] [-a] [-d] [-c] [-m] [-z] [-b]      *)
+        (*     rub infile [-b] [-h] [-z] [-m] [-s] [-e <.rub>] [-v] [-r] [-a] [-d] [-c] [-m] [-z] [-h] outfile     *)
 
-        (* the command line options follow a pipe structure. from standard in to standard out without the repeats
+        (* the command line options follow a pipe structure. from infile to outfile without the repeats
         they are as follows and (i) indicates REMOVAL of a feature from the pipe by the option:
-                -b (i) base64 encode/decode
+                -b (i) backwards file read
+                -h (i) hex encode/decode
                 -z (i) compress/deompress using fast entropic method
                 -m (i) 4096 bit encrypt/decrypt of stream (encyption of the rubikon still happens even if stream encryption is disabled by -m)
                 -s digital signature

@@ -90,7 +90,8 @@ implementation
 
         function createKey: key;
         var
-                p, q, t: value;
+                p, q, t, m: value;
+                i: integer;
         begin
                 t := zero;
                 t[upper] := 1; (* bound check *)
@@ -121,6 +122,14 @@ implementation
                         createKey.kH := power(createKey.kDecrypt, createKey.kCrypt);
                         (* self sign public key ^ *)
                         if greater(t, createKey.kModulus) then createKey.kModulus := zero; (* not big enough *)
+                        (* key test *)
+                        for i = 0 to 100 do
+                        begin
+                                m := randomz(zero, false);
+                                if decrypt(encrypt(m, createKey), createKey) <> m then createKey.kModulus := zero; (* bad key *)
+                                createKey := stepKey(createKey);
+                        end;
+                        createKey.rsa := true;
                 end;
         end;
 
