@@ -1,11 +1,18 @@
 unit sorter;
-        (* a simple quick sort routine for sorting the characters of a string *)
+        (* a simple quick sort routine for sorting an array of integers *)
 interface
-         function sort(a: ansistring): ansistring;
+        const
+                qupper = 2047; (* quad sized rub *)
+        type
+                compare = function(i, j: integer): boolean;
+                lquad = array [0 .. qupper] of integer;
+
+        function sort(a: lquad; w: compare): lquad;
+        function lessThan(i, j: integer): boolean;
 implementation
 
         var
-                index: ansistring;
+                index: lquad;
 
         function lessThan(i, j: integer): boolean;
         begin
@@ -16,9 +23,9 @@ implementation
         var
                 t: integer;
         begin
-                t := integer(index[i]);
+                t := index[i];
                 index[i] := index[j];
-                index[j] := ansichar(t);
+                index[j] := t;
         end;
 
         function partition(left, right, pivotIndex: integer): integer;
@@ -50,7 +57,7 @@ implementation
                 end;
         end;
 
-        function sort(a: ansistring): ansistring;
+        function sort(a: lquad; w: compare): lquad;
         begin
                 index := a;
                 qsort(0, length(a));

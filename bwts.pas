@@ -1,6 +1,6 @@
-package uk.co.peopleandroid.aceb;
+unit bwts;
 
-/* A bijective BWT (S) adapted from source
+(* A bijective BWT (S) adapted from source
  * Mark Nelson
  * March 8, 1996
  * http://web2.airmail.net/markn
@@ -10,9 +10,13 @@ package uk.co.peopleandroid.aceb;
  * to sort faster and drop EOF
  * modified by Simon P. Jackson, BEng. in June of 2010
  * to become a Java class to BWTS char[] type
- */
+ * modified april 2014 into pascal too
+ *)
 
-public class BWTS extends Sorter {
+interface
+        uses sorter;     (* to sort one lquad = array [0 .. qupper] of integer *)
+
+implementation
 
     private char[] bufs;
     private char[] buffer;
