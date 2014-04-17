@@ -1,43 +1,59 @@
-package uk.co.peopleandroid.aceb;
+unit sorter;
+        (* a simple quick sort routine for sorting the characters of a string *)
+interface
+         function sort(a: ansistring): ansistring;
+implementation
 
-public class Sorter {
+        var
+                index: ansistring;
 
-    public boolean lessThan(int i, int j) {
-        return index[i]<index[j];
-    }
+        function lessThan(i, j: integer): boolean;
+        begin
+                lessthan := index[i]<index[j];
+        end;
 
-    protected int[] index; //the index pointer
+        procedure swap(i, j: integer);
+        var
+                t: integer;
+        begin
+                t := integer(index[i]);
+                index[i] := index[j];
+                index[j] := ansichar(t);
+        end;
 
-    public void sort(int[] array) {
-        index = array;
-        qsort(0, index.length);
-    }
+        function partition(left, right, pivotIndex: integer): integer;
+        var
+                storeIndex, i: integer;
+        begin
+                swap(pivotIndex, right);
+                storeIndex := left;
+                for i := left to right - 1 do
+                        if lessThan(i, pivotIndex) then
+                        begin
+                                swap(i, storeIndex);
+                                storeIndex := storeIndex + 1;
+                        end;
+                swap(storeIndex, right);
+                partition := storeIndex;
+        end;
 
-    private void qsort(int left, int right) {
-        if(right > left) {
-             int pivotIndex = left+(right-left)/2;
-             int pivotNewIndex = partition(left, right, pivotIndex);
-             qsort(left, pivotNewIndex - 1);
-             qsort(pivotNewIndex + 1, right);
-        }
-    }
+        procedure qsort(left, right: integer);
+        var
+                pivotIndex, pivotNewIndex: integer;
+        begin
+                if right > left then
+                begin
+                        pivotIndex := left + (right - left) div 2;
+                        pivotNewIndex := partition(left, right, pivotIndex);
+                        qsort(left, pivotNewIndex - 1);
+                        qsort(pivotNewIndex + 1, right);
+                end;
+        end;
 
-    private int partition(int left, int right, int pivotIndex) {
-         swap(pivotIndex, right);
-         int storeIndex = left;
-         for(int i = left;i < right;i++) {
-             if(lessThan(i, pivotIndex)) {
-                 swap(i, storeIndex);
-                 storeIndex++;
-             }
-         }
-         swap(storeIndex, right);
-         return storeIndex;
-    }
-
-    private void swap(int i, int j) {
-        int t = index[i];
-        index[i] = index[j];
-        index[j] = t;
-    }
-}
+        function sort(a: ansistring): ansistring;
+        begin
+                index := a;
+                qsort(0, length(a));
+                sort := index;
+        end;
+end.
