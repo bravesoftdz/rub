@@ -29,8 +29,9 @@ interface
         function sigma(inval: cquad): cquad;
 
         (* effectively compresses runs of zeros *)
-        function zrle(inval: cquad): ansistring;
-        function izrle(inval: ansistring): cquad;
+        function zrle(inval: cquad; b: boolean): ansistring;
+        function izrle(inval: ansistring; b: boolean): cquad;
+        (* on b is true do compress, else just convert cquad to ansistring *)
 
         function more(): ansistring;
         (* if not empty then izrle did not use all inval.
@@ -41,6 +42,8 @@ interface
            note: try a larger input string and get a complete block
            if more text is available to make a longer string *)
 
+        function reverse(a: ansistring; b: boolean): ansistring;
+
 implementation
         var
                 bufs, buff2, output: cquad;
@@ -49,7 +52,22 @@ implementation
                 l: integer;
                 cc: ansistring;
 
-        function zrle(inval: cquad): ansistring;
+        function reverse(a: ansistring; b: boolean): ansistring;
+        var
+                i: integer;
+        begin
+                if b then
+                begin
+                        reverse := '';
+                        if length(a) = 0 then exit;
+                        for i := length(a) - 1 downto 0 do
+                                reverse := reverse + pchar(a)[i];
+                end
+                else
+                        reverse := a;
+        end;
+
+        function zrle(inval: cquad; b: boolean): ansistring;
         var
                 i, c: integer;
         begin
@@ -57,7 +75,7 @@ implementation
                 c := 0;
                 for i := 0 to qupper do
                 begin
-                        if integer(inval[i]) <> 0 then
+                        if (integer(inval[i]) <> 0) or not b then
                         begin
                                 if c <> 0 then
                                 begin
@@ -65,10 +83,18 @@ implementation
                                         zrle := zrle + ansichar(c);
                                         c := 0;
                                 end;
-                                zrle := zrle + inval[i]
+                                zrle := zrle + inval[i];
                         end
                         else
+                        begin
                                 c := c + 1;
+                                if c = 256 then (* continue *)
+                                begin
+                                        zrle := zrle + ansichar(0);
+                                        zrle := zrle + ansichar(255);
+                                        c := 1;
+                                end;
+                        end;
                 end;
                 if c <> 0 then (* final run *)
                 begin
@@ -76,11 +102,14 @@ implementation
                         zrle := zrle + ansichar(c);
                 end;
                 (* terminator *)
-                zrle := zrle + ansichar(0);
-                zrle := zrle + ansichar(0);
+                if b then
+                begin
+                        zrle := zrle + ansichar(0);
+                        zrle := zrle + ansichar(0);
+                end;
         end;
 
-        function izrle(inval: ansistring): cquad;
+        function izrle(inval: ansistring; b: boolean): cquad;
         var
                 i, c: integer;
                 ch: ansichar;
@@ -88,13 +117,13 @@ implementation
                 c := 0;
                 for i := 0 to qupper do
                 begin
-                        if c = 0 then
+                        if c = 0  then
                         begin
                                 if length(inval) = 0 then
                                         break;
                                 ch := pchar(copy(inval, 0, 1))[0];
                                 inval := copy(inval, 1, length(inval));
-                                if integer(ch) <> 0 then
+                                if (integer(ch) <> 0) or not b then
                                 begin
                                         izrle[i] := ch;
                                 end
