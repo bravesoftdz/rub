@@ -32,6 +32,7 @@ interface
                         kScore: value; (* lower is better *)
                 end;
 
+                (* check unit modulo for definition of value, as it is array [0 .. upper] of cardinal *)
                 quad = array [0 .. 3] of value;
 
         (* key and general encryption fiunctions *)

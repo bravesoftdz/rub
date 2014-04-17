@@ -4,8 +4,8 @@ rub
 Free Pascal Implementation of the Rubikon
 -----------------------------------------
 
-2014-04-11 development and crypto.pas started.
-2014-04-17 modulo.pas and crypto.pas compile, not tested. .gitignore added.
+  * 2014-04-11 development and crypto.pas started.
+  * 2014-04-17 modulo.pas and crypto.pas compile, not tested, .gitignore added, sorter and bwts still in Java.
 
 The URL https://sites.google.com/site/rubikcompression/home contains details of the method.
 The repo is arranged into units so that others may find utility in the separate units.
@@ -56,7 +56,8 @@ But are we there yet? Units included are
   * crypto - RSA and ElGamal encryption - encryption blend feature
   * rubutil - utilities for rub
   * rub - the main rub unit
+  * sorter - a quick sorter unit
+  * bwts - a BWT Scottified processing unit
 
-A .pas for a CLI version of rub completes the project.
-
-
+For commentary on how Free Pascal differs from regular Pascal see:
+https://sites.google.com/site/programinglanguagefea/other-language-designs/pascal
