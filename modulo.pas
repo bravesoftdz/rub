@@ -15,6 +15,13 @@ interface
                 value = array [0 .. upper] of cardinal;
                 pair = array [0 .. 1] of value;
 
+        var
+                iModulus: value; (* two's complement modulus *)
+                modulus: value;
+                zero: value;
+                one: value;
+                nogo: boolean;
+
         (* i do find the need to match the names of parameters more of a problem than matching types
         between the forward definition and implementation *)
 
@@ -41,13 +48,6 @@ interface
 implementation
         type
                 fType = function (a, b: value): value;
-
-        var
-                iModulus: value; (* two's complement modulus *)
-                modulus: value;
-                zero: value;
-                one: value;
-                nogo: boolean;
 
         function getZero: value;
         begin

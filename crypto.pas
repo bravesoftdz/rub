@@ -78,7 +78,7 @@ implementation
                         setModulus(n);
                         c := 0;
                         a := sub(n, one);
-                        while c < 100 and power (a, n) = a do (* likely prime test *)
+                        while (c < 100) and equal(power (a, n), a) do (* likely prime test *)
                         begin
                                 a := sub(a, one);
                                 c := c + 1;
@@ -90,7 +90,7 @@ implementation
 
         function stepKey(k: key): key;
         begin
-                stepKey := key;
+                stepKey := k;
                 if k.rsa then stepKey.rsa := false;
                 if not k.rsa then stepKey.rsa := true;
         end;
@@ -104,6 +104,7 @@ implementation
                 t[upper] := 1; (* bound check *)
                 createKey.kModulus := zero;
                 while equal(createKey.kModulus, zero) do
+                begin
                         setModulus(zero);
                         p := makePrime;
                         q := makePrime;
@@ -112,7 +113,7 @@ implementation
                         createKey.kPhi := sub(createKey.kModulus, sub(add(p, q), one));
                         (* phi set *)
                         createKey.kScore := gcd(sub(p, one), sub(q, one));
-                        createKey.kPhi := divide(createKey.kPhi, createKey.kScore);
+                        createKey.kPhi := divide(createKey.kPhi, createKey.kScore)[0]; (* quotient *)
                         (* this ^ does the lcm carmicheal *)
                         createKey.kCrypt := randomz(zero, false);
                         (* an initial set up of the exponent *)
@@ -122,7 +123,7 @@ implementation
                         begin
                                 createKey.kCrypt := add(createKey.kCrypt, one);
                                 createKey.kDecrypt := inverse(createKey.kCrypt);
-                                if gcd(createKey.kCrypt, createKey.kPhi) <> one then createKey.kDecrypt = zero;
+                                if not equal(gcd(createKey.kCrypt, createKey.kPhi), one) then createKey.kDecrypt := zero;
                         end;
                         (* set a decrypt exponent *)
                         setModulus(createKey.kModulus);
@@ -158,6 +159,7 @@ implementation
                                 t := randomz(a, false);
                                 encryptt[0] := power(k.kCrypt, t); (* c1 *)
                                 encryptt[1] := mul(power(k.kH, t), a); (* c2 *)
+                        end
                         else
                         begin
                                 setModulus(k.kPhi);
@@ -181,7 +183,7 @@ implementation
                 setModulus(k.kModulus);
                 if k.rsa then
                 begin
-                        if not sig then t := k.kCrypt else t := k.kDecrypt
+                        if not sig then t := k.kCrypt else t := k.kDecrypt;
                         decryptt := power(a[0], t);
                         if sig then decryptt := power(k.kCrypt, decryptt); (* match RSA to ElGamal *)
                 end
@@ -190,7 +192,7 @@ implementation
                         if not sig then
                                 decryptt := mul(a[1], power(a[0], sub(k.kModulus, k.kDecrypt)))
                         else
-                                decryptt := mul(pow(k.kH, a[0]), pow(a[0], a[1]));
+                                decryptt := mul(power(k.kH, a[0]), power(a[0], a[1]));
                 end;
         end;
 
@@ -221,7 +223,7 @@ implementation
                 encrypttt(a, k, false);
         end;
 
-        function signHelp(a: value; b: value): value;
+        function signHelp(a: value; b: value; k: key): value;
         begin
                 (* modulus already set by decrypt *)
                 a := power(k.kCrypt, a);
@@ -232,18 +234,18 @@ implementation
         var
                 i: pair;
                 j: value;
-                k: integer;
+                l: integer;
         begin
                 i[0] := a[0];
                 i[1] := a[1];
                 decrypttt := decryptt(i, k, sig); (* power if sig *)
-                if sig then decrypttt := signHelp(b, decrypttt);
+                if sig then decrypttt := signHelp(b, decrypttt, k);
                 i[0] := a[2];
                 i[0] := a[3];
-                j := decrypt(i, k, sig); (* power if sig *)
-                if sig then j := signHelp(c, j);
-                for k := 0 to ((upper + 1) >> 1) - 1 do
-                                decrypttt[k + ((upper + 1) >> 1)] := j[k];
+                j := decryptt(i, k, sig); (* power if sig *)
+                if sig then j := signHelp(c, j, k);
+                for l := 0 to ((upper + 1) >> 1) - 1 do
+                                decrypttt[l + ((upper + 1) >> 1)] := j[l];
         end;
 
         function decrypt(a: quad; k: key): value; (* private *)
@@ -261,7 +263,7 @@ implementation
                 i: value;
         begin
                 i := decrypttt(a, k, true, splitValue(b, false, true), splitValue(b, true, true)); (* powered to k.kCrypt *)
-                check := (i = zero);
+                check := equal(i, zero);
         end;
 
         function loadPubKey(s: quad): key;
@@ -272,7 +274,7 @@ implementation
                 (* checks for valid keys because of halting problem *)
                 if not greater(loadPubKey.kModulus, loadPubKey.kH) then loadPubKey.kModulus := zero;
                 setModulus(loadPubKey.kModulus);
-                if not equal(power(loadPubKey.kH, loadPubKey.kCrypt), loadPubKey.kCrypt) then loadPubKey.kModulus = zero; (* test for valid *)
+                if not equal(power(loadPubKey.kH, loadPubKey.kCrypt), loadPubKey.kCrypt) then loadPubKey.kModulus := zero; (* test for valid *)
                 loadPubKey.kRub := s[3];
         end;
 
@@ -288,8 +290,8 @@ implementation
         var
                 rsa: boolean;
         begin
-                if s[0] = zero then rsa = true;
-                if s[0] = one then rsa = false;
+                if equal(s[0], zero) then rsa := true;
+                if equal(s[0], one) then rsa := false;
                 loadPrivKey.rsa := rsa;
                 loadPrivKey.kDecrypt := s[1];
                 loadPrivKey.kPhi := s[2];
