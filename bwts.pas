@@ -13,6 +13,8 @@ unit bwts;
  * modified april 2014 into pascal too
  *)
 
+(* added delta coder and ZRLE coder *)
+
 interface
         uses sorter;     (* to sort one lquad = array [0 .. qupper] of integer *)
 
@@ -21,13 +23,139 @@ interface
 
         function bwts(inval: cquad): cquad;
         function ibwts(inval: cquad): cquad;
+
+        (* effectively makes runs of any into runs of zeros *)
+        function delta(inval: cquad): cquad;
+        function sigma(inval: cquad): cquad;
+
+        (* effectively compresses runs of zeros *)
+        function zrle(inval: cquad): ansistring;
+        function izrle(inval: ansistring): cquad;
+
+        function more(): ansistring;
+        (* if not empty then izrle did not use all inval.
+           if empty then only a partial decode happened. *)
+        function less(): integer;
+        (* if equals qupper, a full cquad was decoded by izrle.
+           if less than qupper, this is the buffer end point.
+           note: try a larger input string and get a complete block
+           if more text is available to make a longer string *)
+
 implementation
         var
-                bufs, buff2, out: cquad;
-                xx, index: lquad;
+                bufs, buff2, output: cquad;
+                xx, idx: lquad;
                 T, count: lquad;
+                l: integer;
+                cc: ansistring;
 
-        procedure modBufs(aS, aE: integer; m: boolean);
+        function zrle(inval: cquad): ansistring;
+        var
+                i, c: integer;
+        begin
+                zrle := '';
+                c := 0;
+                for i := 0 to qupper do
+                begin
+                        if integer(inval[i]) <> 0 then
+                        begin
+                                if c <> 0 then
+                                begin
+                                        zrle := zrle + ansichar(0);
+                                        zrle := zrle + ansichar(c);
+                                        c := 0;
+                                end;
+                                zrle := zrle + inval[i]
+                        end
+                        else
+                                c := c + 1;
+                end;
+                if c <> 0 then (* final run *)
+                begin
+                        zrle := zrle + ansichar(0);
+                        zrle := zrle + ansichar(c);
+                end;
+                (* terminator *)
+                zrle := zrle + ansichar(0);
+                zrle := zrle + ansichar(0);
+        end;
+
+        function izrle(inval: ansistring): cquad;
+        var
+                i, c: integer;
+                ch: ansichar;
+        begin
+                c := 0;
+                for i := 0 to qupper do
+                begin
+                        if c = 0 then
+                        begin
+                                if length(inval) = 0 then
+                                        break;
+                                ch := pchar(copy(inval, 0, 1))[0];
+                                inval := copy(inval, 1, length(inval));
+                                if integer(ch) <> 0 then
+                                begin
+                                        izrle[i] := ch;
+                                end
+                                else
+                                begin
+                                        if length(inval) = 0 then
+                                                break;
+                                        c := integer(pchar(copy(inval, 0, 1))[0]);
+                                        inval := copy(inval, 1, length(inval));
+                                        if c = 0 then (* terminal *)
+                                                break;
+                                end;
+                        end
+                        else (* c > 0 *)
+                        begin
+                                izrle[i] := char(0); (* zero char *)
+                                c := c - 1;
+                        end;
+                end;
+                l := i; (* pointer stall *)
+                cc := inval;
+        end;
+
+        function more(): ansistring;
+        begin
+                more := cc;
+        end;
+
+        function less(): integer;
+        begin
+                less := l;
+        end;
+
+        function delta(inval: cquad): cquad;
+        var
+                i, j: integer;
+        begin
+                j := integer(inval[0]);
+                delta[0] := char(j);
+                for i := 1 to qupper do
+                begin
+                        delta[i] := ansichar((integer(inval[i]) - j) and 255);
+                        j := integer(inval[i - 1]);
+                end;
+        end;
+
+        function sigma(inval: cquad): cquad;
+        var
+                i, j: integer;
+        begin
+                j := integer(inval[0]);
+                sigma[0] := char(j);
+                for i := 1 to qupper do
+                begin
+                        sigma[i] := ansichar((integer(inval[i]) + j) and 255);
+                        j := integer(sigma[i - 1]);
+                end;
+
+        end;
+
+        procedure modBufs(ass, aE: integer; m: boolean);
         var
                 ch: ansichar;
                 p1, i: integer;
@@ -35,7 +163,7 @@ implementation
                 ch := buff2[aE];
                 p1 := aE;
                 i := aE + 1;
-                while i > aS do
+                while i > ass do
                 begin
                         i := i - 1;
                         if buff2[i] <> ch then
@@ -47,7 +175,7 @@ implementation
                                 break;
                         xx[i] := p1;
                 end;
-                xx[aE] := aS;
+                xx[aE] := ass;
         end;
 
         function lessThanC(i, j: integer; s: boolean): boolean;
@@ -169,14 +297,14 @@ implementation
         begin
                 buff2 := inval;
                 for i := 0 to qupper do
-                        index[i] := i;
+                        idx[i] := i;
                 for i := 0 to qupper - 1 do
                         bufs[i + 1] := buff2[i];
                 bufs[0] := buff2[qupper];
                 part_cycle(0, qupper);
-                sort(index, @lessThanB);
+                sort(idx, @lessThanB);
                 for i := 0 to qupper do
-                        buff2[i] := bufs[index[i]];
+                        buff2[i] := bufs[idx[i]];
                 bwts := buff2;
         end;
 
@@ -219,7 +347,7 @@ implementation
                         for j := i to qupper do
                                 if bufs[j] = '0' then
                                         break;
-                        if (bufs[j] <> '0') or (j = qupper) then
+                        if (j = qupper + 1) or (bufs[j] <> '0') then (* lazy or no buffer overflow *)
                                 break;
                         i := j;
                 end;
@@ -233,15 +361,15 @@ implementation
                         begin
                                 if i = j then
                                         break;
-                                out[k] := buff2[j];
+                                output[k] := buff2[j];
                                 k := k + 1;
                                 j := T[j];
                         end;
-                        out[k] := buff2[i];
+                        output[k] := buff2[i];
                         k := k + 1;
                end;
                for i := 0 to qupper do
-                        buff2[i] := out[i];
+                        buff2[i] := output[i];
                ibwts := buff2;
         end;
 end.
