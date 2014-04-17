@@ -38,26 +38,11 @@ interface
         function gcd(a: value; b: value): value;
         function inverse(a: value): value;
         function greater(a: value; b: value): boolean; (* or equal to *)
-
-        (* utility *)
-        function getZero: value;
-        function getOne: value;
-
         function equal(a: value; b: value): boolean;
 
 implementation
         type
                 fType = function (a, b: value): value;
-
-        function getZero: value;
-        begin
-                getZero := zero;
-        end;
-
-        function getOne: value;
-        begin
-                getOne := one;
-        end;
 
         function addc(a: cardinal; b: cardinal; c: cardinal): cardinal;
         var

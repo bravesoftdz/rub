@@ -45,8 +45,8 @@ interface
         function savePubKey(k: key): quad;
         function loadPrivKey(s: quad): key;
         function savePrivKey(k: key): quad;
-        function createKey: key;
-        function makePrime: value;
+        function createKey(): key;
+        function makePrime(): value;
 
 implementation
         function randomz(a: value; sig: boolean): value;
@@ -63,7 +63,7 @@ implementation
                 randomz[upper] := 0; (* botch *)
         end;
 
-        function makePrime: value;
+        function makePrime(): value;
         var
                 a, n: value;
                 c, i: integer;
@@ -78,7 +78,7 @@ implementation
                         setModulus(n);
                         c := 0;
                         a := sub(n, one);
-                        while (c < 100) and equal(power (a, n), a) do (* likely prime test *)
+                        while (c < 100) and equal(power(a, n), a) do (* likely prime test *)
                         begin
                                 a := sub(a, one);
                                 c := c + 1;
@@ -95,7 +95,7 @@ implementation
                 if not k.rsa then stepKey.rsa := true;
         end;
 
-        function createKey: key;
+        function createKey(): key;
         var
                 p, q, t, m: value;
                 i: integer;
