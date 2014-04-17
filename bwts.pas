@@ -16,190 +16,232 @@ unit bwts;
 interface
         uses sorter;     (* to sort one lquad = array [0 .. qupper] of integer *)
 
+        type
+                cquad = array [0 .. qupper] of ansichar;
+
+        function bwts(inval: cquad): cquad;
+        function ibwts(inval: cquad): cquad;
 implementation
+        var
+                bufs, buff2, out: cquad;
+                xx, index: lquad;
+                T, count: lquad;
 
-    private char[] bufs;
-    private char[] buffer;
-    private int[] xx;
+        procedure modBufs(aS, aE: integer; m: boolean);
+        var
+                ch: ansichar;
+                p1, i: integer;
+        begin
+                ch := buff2[aE];
+                p1 := aE;
+                i := aE + 1;
+                while i > aS do
+                begin
+                        i := i - 1;
+                        if buff2[i] <> ch then
+                        begin
+                                ch := buff2[i];
+                                p1 := i + 1;
+                        end;
+                        if m and (xx[i] = p1) then
+                                break;
+                        xx[i] := p1;
+                end;
+                xx[aE] := aS;
+        end;
 
-    private void modBufs(int aS, int aE, boolean mod) {
-       char ch = buffer[aE];
-       int p1 = aE;
-       for (int i = aE + 1; i-- > aS;) {
-          if (buffer[i] != ch) {
-             ch = buffer[i];
-             p1 = i + 1;
-          }
-          if (mod && xx[i] == p1) {
-             break;
-          }
-          xx[i] = p1;
-       }
-       xx[aE] = aS;
-    }
+        function lessThanC(i, j: integer; s: boolean): boolean;
+        var
+                iold, jold, ic, jc: integer;
+        begin
+                iold := i;
+                jold := j;
+                ic := 3;
+                jc := 3;
+                if buff2[i] <> buff2[j] then
+                begin
+                        lessThanC := buff2[i] < buff2[j];
+                        exit;
+                end;
+                while true do
+                begin
+                        if i < xx[i] then
+                        begin
+                                if j < xx[j] then
+                                begin
+                                        if (xx[i] - i) < (xx[j] - j) then
+                                        begin
+                                                j := j + xx[i] - i;
+                                                i := xx[i];
+                                        end
+                                        else if (xx[i] - i) > (xx[j] - j) then
+                                        begin
+                                                i := i + xx[j] - j;
+                                                j := xx[j];
+                                        end
+                                        else
+                                        begin
+                                                i := xx[i];
+                                                j := xx[j];
+                                        end
+                                end
+                                else
+                                begin
+                                        if jc <> 0 then
+                                                jc := jc - 1;
+                                        if s then
+                                                j := jold
+                                        else
+                                                j := xx[j];
+                                        i := i + 1;
+                                end
+                        end
+                        else
+                        begin
+                                if j < xx[j] then
+                                        j := j + 1
+                                else
+                                begin
+                                        if jc <> 0 then
+                                                jc := jc - 1;
+                                        if s then
+                                                j := jold
+                                        else
+                                                j := xx[j];
+                                end;
+                                if s then
+                                        i := iold
+                                else
+                                        i := xx[i];
+                                if ic <> 0 then
+                                        ic := ic - 1;
+                        end;
+                        if buff2[i] <> buff2[j] then
+                                break;
+                        if (ic + jc) = 0 then
+                                break;
+                end;
+                if buff2[i] <> buff2[j] then
+                        lessThanC := buff2[i] < buff2[j];
+                lessThanC := i < j;
+        end;
 
-    public void sort(int[] x) {
-        //null function
-    }
+        function lessThanB(i, j: integer): boolean;
+        begin
+                lessThanB := lessThanC(i, j, false);//sorter thing!!
+        end;
 
-    public boolean lessThan(int i, int j) {
-       return lessThan(i, j, false);//sorter thing!!
-    }
+        procedure part_cycle(startS, endS: integer);
+        var
+                Ns, Ts, i: integer;
+        begin
+                Ns := endS;
+                modBufs(startS, endS, false);
+                while true do
+                begin
+                        if Ns = startS then
+                        begin
+                                bufs[Ns] := buff2[Ns];
+                                xx[Ns] := Ns;
+                                exit;
+                        end;
+                        modBufs(startS, Ns, true);
+                        Ts := Ns;			// first guess
+                         i := startS;
+                        while i < Ns do
+                        begin
+                                i := xx[i];
+                                if lessThanC(Ts, i, true) <> true then
+                                        Ts := i;
+                        end;
+                        modBufs(Ts, Ns, true);
+                        bufs[Ts] := buff2[Ns];
+                        if Ts = startS then
+                                exit;
+                        Ns := Ts - 1;
+                        bufs[startS] := buff2[Ns];
+                end;
+        end;
 
-    private boolean lessThan(int i, int j, boolean s) {
-       int iold = i;
-       int jold = j;
-       short ic = 3;
-       short jc = 3;
-       if (buffer[i] != buffer[j])
-          return buffer[i] < buffer[j];
-       for (;;) {
-          if (i < xx[i]) {
-             if (j < xx[j]) {
-                if ((xx[i] - i) < (xx[j] - j)) {
-                   j += xx[i] - i;
-                   i = xx[i];
-                } else if ((xx[i] - i) > (xx[j] - j)) {
-                   i += xx[j] - j;
-                   j = xx[j];
-                } else {
-                   i = xx[i];
-                   j = xx[j];
-                }
-             } else {
+        function bwts(inval: cquad): cquad;
+        var
+                i: integer;
+        begin
+                buff2 := inval;
+                for i := 0 to qupper do
+                        index[i] := i;
+                for i := 0 to qupper - 1 do
+                        bufs[i + 1] := buff2[i];
+                bufs[0] := buff2[qupper];
+                part_cycle(0, qupper);
+                sort(index, @lessThanB);
+                for i := 0 to qupper do
+                        buff2[i] := bufs[index[i]];
+                bwts := buff2;
+        end;
 
-                if (jc != 0)
-                   jc--;
-                j = s? jold : xx[j];
-                i++;
-             }
-          } else {
-             if (j < xx[j]) {
-                j++;
-             } else {
-                if (jc != 0)
-                   jc--;
-                j = s? jold : xx[j];
-             }
-             i = s? iold : xx[i];
-             if (ic != 0)
-                ic--;
-          }
-          if (buffer[i] != buffer[j])
-             break;
-          if ((ic + jc) == 0)
-             break;
-       }
-       if (buffer[i] != buffer[j])
-          return buffer[i] < buffer[j];
-       return i < j;
-    }
-
-    private void part_cycle(int startS, int endS) {
-       int Ns = endS;
-       int Ts;
-       modBufs(startS, endS, false);
-       for (;;) {
-          if (Ns == startS) {
-             bufs[Ns] = buffer[Ns];
-             xx[Ns] = Ns;
-             return;
-          }
-          modBufs(startS, Ns, true);
-          Ts = Ns;			// first guess
-          for (int i = startS; i < Ns; i = xx[i]) {
-             if (lessThan(Ts, i, true) != true)
-                Ts = i;
-          }
-          modBufs(Ts, Ns, true);
-          bufs[Ts] = buffer[Ns];
-          if (Ts == startS)
-             return;
-          Ns = Ts - 1;
-          bufs[startS] = buffer[Ns];
-       }
-    }
-
-    public void sort(char[] in) {
-        buffer = in;
-        int i;
-        int length = buffer.length;
-        index = new int[length];
-        for (i = 0; i < length; i++) {
-            index[i] = i;
-        }
-        bufs = new char[length];
-        for (i = 0; i < length - 1; i++) {
-            bufs[i + 1] = buffer[i];
-        }
-        bufs[0] = buffer[length - 1];
-        xx = new int[length];
-        part_cycle(0, length - 1);
-        super.sort(index);
-        for (i = 0; i < length; i++) {
-            buffer[i] = bufs[index[i]];
-        }
-    }
-
-    private int[] T;
-    private int[] count;
-
-    public void unsort(char[] in) {
-        buffer = in;
-        int length = buffer.length;
-        int i, j;
-        count = new int[length];
-        bufs = new char[length];
-        for (i = 0; i < length; i++)
-            count[i] = 0;
-        for (i = 0; i < length; i++) {
-            bufs[i] = '0';
-            count[buffer[i]]++;
-        }
-        int sum = 0;
-        xx = new int[length];
-        for (i = 0; i < length; i++) {
-            xx[i] = sum;
-            sum += count[i];
-            count[i] = 0;
-        }
-        T = new int[length];
-        for (i = 0; i < length; i++) {
-            j = buffer[i];
-            T[count[j] + xx[j]] = i;
-            count[j]++;
-        }
-        for (i = 0;;) {
-            bufs[i] = '2';	/* 2 top of a cycle */
-            for (j = 0; j < length; j++) {
-               i = T[i];
-               if (bufs[i] == '2')
-                  break;
-               bufs[i] = '3';
-            }
-            for (j = i; j < length; j++)
-               if (bufs[j] == '0')
-                  break;
-            if (bufs[j] != '0' || j == length)
-               break;
-            i = j;
-        }
-        char[] out = new char[length];
-        int k = 0;
-        for (i = length - 1;; i--) {
-            if (bufs[i] != '2')
-               continue;
-            for (j = T[i];;) {
-               if (i == j)
-                  break;
-               out[k++] = buffer[j];
-               j = T[j];
-            }
-            out[k++] = buffer[i];
-            if (i == 0)
-               break;
-        }
-        for(i = 0; i<length; i++)
-            buffer[i] = out[i];
-    }
-}
+        function ibwts(inval: cquad): cquad;
+        var
+                i, j, k, sum: integer;
+        begin
+                buff2 := inval;
+                for i := 0 to qupper do
+                        count[i] := 0;
+                for i := 0 to qupper do
+                begin
+                        bufs[i] := '0';
+                        count[word(buff2[i])] := count[word(buff2[i])] + 1;
+                end;
+                sum := 0;
+                for i := 0 to qupper do
+                begin
+                        xx[i] := sum;
+                        sum := sum + count[i];
+                        count[i] := 0;
+                end;
+                for i := 0 to qupper do
+                begin
+                        j := integer(buff2[i]);
+                        T[count[j] + xx[j]] := i;
+                        count[j] := count[j] + 1;
+                end;
+                i := 0;
+                while true do
+                begin
+                        bufs[i] := '2';	(* 2 top of a cycle *)
+                        for j := 0 to qupper do
+                        begin
+                                i := T[i];
+                                if bufs[i] = '2' then
+                                        break;
+                                bufs[i] := '3';
+                        end;
+                        for j := i to qupper do
+                                if bufs[j] = '0' then
+                                        break;
+                        if (bufs[j] <> '0') or (j = qupper) then
+                                break;
+                        i := j;
+                end;
+                k := 0;
+                for i := qupper downto 0 do
+                begin
+                        if bufs[i] <> '2' then
+                                continue;
+                        j := T[i];
+                        while true do
+                        begin
+                                if i = j then
+                                        break;
+                                out[k] := buff2[j];
+                                k := k + 1;
+                                j := T[j];
+                        end;
+                        out[k] := buff2[i];
+                        k := k + 1;
+               end;
+               for i := 0 to qupper do
+                        buff2[i] := out[i];
+               ibwts := buff2;
+        end;
+end.

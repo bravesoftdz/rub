@@ -4,9 +4,9 @@ interface
         uses modulo;
 
         const
-                qvindexer = (8 * (upper + 1) - 1); (* quad sized rub * ansichar multiplier *)
+                qvindexer = (8 * (upper + 1) - 1); (* quad sized rub * integer / ansichar multiplier *)
                 (* this makes it twice as many as a quad sized rub value, but it indexes > 255 *)
-                qupper = (32 * (qvindexer + 1) - 1); (* block size 32K *)
+                qupper = (64 * (qvindexer + 1) - 1); (* block size 32K *)
         type
                 compare = function(i, j: integer): boolean;
                 lquad = array [0 .. qupper] of integer;
