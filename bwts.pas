@@ -166,7 +166,7 @@ implementation
                 for i := 1 to qupper do
                 begin
                         delta[i] := ansichar((integer(inval[i]) - j) and 255);
-                        j := integer(inval[i - 1]);
+                        j := integer(inval[i]);
                 end;
         end;
 
