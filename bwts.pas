@@ -179,7 +179,7 @@ implementation
                 for i := 1 to qupper do
                 begin
                         sigma[i] := ansichar((integer(inval[i]) + j) and 255);
-                        j := integer(sigma[i - 1]);
+                        j := integer(sigma[i]);
                 end;
 
         end;
