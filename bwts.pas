@@ -54,14 +54,22 @@ implementation
 
         function reverse(a: ansistring; b: boolean): ansistring;
         var
-                i: integer;
+                i, j, c, d: integer;
         begin
                 if b then
                 begin
                         reverse := '';
                         if length(a) = 0 then exit;
                         for i := length(a) - 1 downto 0 do
-                                reverse := reverse + pchar(a)[i];
+                        begin
+                                c := integer(pchar(a)[i]);
+                                d := 0;
+                                for j := 0 to 8 do
+                                begin
+
+                                end;
+                                reverse := reverse + chr(d);
+                        end;
                 end
                 else
                         reverse := a;
