@@ -117,6 +117,20 @@ implementation
                 end;
         end;
 
+        procedure curtail(i: integer);
+        var
+                j: integer;
+        begin
+                for j := 0 to i - 1 do
+                begin
+                        while dict[j].extend >= i do
+                        begin
+                                dict[j].extend := dict[dict[j].extend].others; (* remove out of bounds *)
+                        end;
+                end;
+                dmax := i; (* pointer reset *)
+        end;
+
         function add(a: ansistring): integer;
         begin
                 match(copy(a, 0, length(a) - 1)); (* force match find of index *)
@@ -159,10 +173,11 @@ implementation
         function ilzw(inval: ansistring; d: boolean): cquad;
         var
                 ch: ansichar;
-                i, j: integer;
+                i, j, k: integer;
                 res: ansistring;
         begin
                 if d then initDict();
+                k := dmax; (* for curtailing retry later *)
                 i := 0; (* index *)
                 while length(inval) > 2 do (* got a valid encoding *)
                 begin
@@ -183,6 +198,7 @@ implementation
                 (* check not enough *)
                 l := i; (* pointer stall *)
                 cc := inval;
+                if i <= qupper then curtail(k);
         end;
 
         function reverse(a: ansistring; b: boolean): ansistring;
