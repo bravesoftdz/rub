@@ -44,13 +44,141 @@ interface
 
         function reverse(a: ansistring; b: boolean): ansistring;
 
+        (* LZW just for variety *)
+        function lzw(inval: cquad): ansistring;
+        function ilzw(inval: ansistring): cquad;
+
 implementation
+
+        type
+                dicE = record
+                     match: ansistring;
+                     others: integer;
+                     extend: integer;
+                end;
+
         var
                 bufs, buff2, output: cquad;
                 xx, idx: lquad;
                 T, count: lquad;
                 l: integer;
                 cc: ansistring;
+                dict: array [0 .. qupper] of dicE; (* very big *)
+                didx: integer;
+                dmax: integer;
+
+        procedure initDict();
+        var
+                i: integer;
+        begin
+                for i := 0 to 255 do
+                begin
+                        dict[i].match := '' + chr(i); (* initial table *)
+                        dict[i].others := i; (* no other matches of same length *)
+                        dict[i].extend := i; (* no current extensions *)
+                end;
+                for i := 256 to qupper do
+                begin
+                        dict[i].match := ''; (* initial table *)
+                        dict[i].others := i; (* no other matches of same length *)
+                        dict[i].extend := i; (* no current extensions *)
+                end;
+                dmax := 256;
+        end;
+
+        function match(a: ansistring): boolean;
+        var
+                s: ansistring;
+                i, j: integer;
+        begin
+                match := true;
+                i := integer(pchar(a)[0]); (* initial match *)
+                s := char(i);
+                while length(s) < length(a) do
+                begin
+                        i := dict[i].extend;
+                        j := length(s) + 1;
+                        s := s + a[j]; (* extend one character *)
+                        while dict[i].match <> s do
+                        begin
+                                if i = dict[i].others then
+                                begin
+                                        match := false;
+                                        break;
+                                end;
+                                i := dict[i].others;
+                        end;
+                        didx := i; (* global found *)
+                        if match = false then break;
+                end;
+        end;
+
+        function add(a: ansistring): integer;
+        begin
+                match(copy(a, 0, length(a) - 1)); (* force match find of index *)
+                add := didx;
+                dict[dmax].match := a;
+                if dict[add].extend <> add then
+                        dict[dmax].others := dict[add].extend;
+                dict[add].extend := dmax;
+                dmax := dmax + 1; (* net slot *)
+        end;
+
+        function lzw(inval: cquad): ansistring;
+        var
+                i, j: integer;
+                c: ansistring;
+        begin
+                initDict();
+                c := '';
+                for i := 0 to qupper do
+                begin
+                        c := c + inval[i];
+                        if not match(c) then
+                        begin
+                                j := add(c); (* old index get *)
+                                lzw := lzw + chr(j and 255);
+                                j := j >> 8;
+                                lzw := lzw + chr(j and 255);
+                                lzw := lzw + inval[i]; (* and character *)
+                        end;
+                end;
+        end;
+
+        function getFirst(var inval: ansistring): ansichar;
+        begin
+                getFirst := pchar(inval)[0];
+                inval := copy(inval, 1, length(inval));
+        end;
+
+        function ilzw(inval: ansistring): cquad;
+        var
+                ch: ansichar;
+                i, j: integer;
+                res: ansistring;
+        begin
+                initDict();
+                i := 0; (* index *)
+                while length(inval) > 2 do (* got a valid encoding *)
+                begin
+                        ch := getFirst(inval);
+                        j := integer(ch);
+                        ch := getFirst(inval);
+                        j := j + (integer(ch) << 8); (* get pointer *)
+                        res := dict[j].match + getfirst(inval);
+                        j := add(res);
+                        while length(res) > 0 do
+                        begin
+                                if i > qupper then break;
+                                ilzw[i] := getFirst(res);
+                                i := i + 1;
+                        end;
+                        if i > qupper then break;
+                end;
+                (* check not enough *)
+                l := i; (* pointer stall *)
+                cc := inval;
+        end;
 
         function reverse(a: ansistring; b: boolean): ansistring;
         var
@@ -129,8 +257,7 @@ implementation
                         begin
                                 if length(inval) = 0 then
                                         break;
-                                ch := pchar(copy(inval, 0, 1))[0];
-                                inval := copy(inval, 1, length(inval));
+                                ch := getFirst(inval);
                                 if (integer(ch) <> 0) or not b then
                                 begin
                                         izrle[i] := ch;
@@ -139,8 +266,7 @@ implementation
                                 begin
                                         if length(inval) = 0 then
                                                 break;
-                                        c := integer(pchar(copy(inval, 0, 1))[0]);
-                                        inval := copy(inval, 1, length(inval));
+                                        c := integer(getFirst(inval));
                                         if c = 0 then (* terminal *)
                                                 break;
                                 end;
