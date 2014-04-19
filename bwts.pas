@@ -45,8 +45,12 @@ interface
         function reverse(a: ansistring; b: boolean): ansistring;
 
         (* LZW just for variety *)
-        function lzw(inval: cquad): ansistring;
-        function ilzw(inval: ansistring): cquad;
+        function lzw(inval: cquad; d: boolean): ansistring;
+        function ilzw(inval: ansistring; d: boolean): cquad;
+        (* if d is true start a new dictionary.
+           there is no initial dictionary, so never make first call false.
+           also never intermix lzw and ilzw with d as false.
+           for good performance on multiple cquads true works better *)
 
 implementation
 
@@ -117,6 +121,7 @@ implementation
         begin
                 match(copy(a, 0, length(a) - 1)); (* force match find of index *)
                 add := didx;
+                if dmax > qupper then exit; (* keep dictionary option *)
                 dict[dmax].match := a;
                 if dict[add].extend <> add then
                         dict[dmax].others := dict[add].extend;
@@ -124,12 +129,12 @@ implementation
                 dmax := dmax + 1; (* net slot *)
         end;
 
-        function lzw(inval: cquad): ansistring;
+        function lzw(inval: cquad; d: boolean): ansistring;
         var
                 i, j: integer;
                 c: ansistring;
         begin
-                initDict();
+                if d then initDict();
                 c := '';
                 for i := 0 to qupper do
                 begin
@@ -151,13 +156,13 @@ implementation
                 inval := copy(inval, 1, length(inval));
         end;
 
-        function ilzw(inval: ansistring): cquad;
+        function ilzw(inval: ansistring; d: boolean): cquad;
         var
                 ch: ansichar;
                 i, j: integer;
                 res: ansistring;
         begin
-                initDict();
+                if d then initDict();
                 i := 0; (* index *)
                 while length(inval) > 2 do (* got a valid encoding *)
                 begin
