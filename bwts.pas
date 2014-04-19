@@ -52,7 +52,14 @@ interface
            also never intermix lzw and ilzw with d as false.
            for good performance on multiple cquads true works better *)
 
+        (* hex encode and decode for some uses *)
+        function hex(inval: cquad): ansistring;
+        function ihex(inval: ansistring): cquad;
+        (* all the above functions use more() and less() in the same way *)
+
 implementation
+        const
+                hc = '0123456789abcdef';
 
         type
                 dicE = record
@@ -70,6 +77,44 @@ implementation
                 dict: array [0 .. qupper] of dicE; (* very big *)
                 didx: integer;
                 dmax: integer;
+
+        function getFirst(var inval: ansistring): ansichar;
+        begin
+                getFirst := pchar(inval)[0];
+                inval := copy(inval, 1, length(inval));
+        end;
+
+        function hex(inval: cquad): ansistring;
+        var
+                i, j: integer;
+        begin
+                hex := '';
+                for i := 0 to qupper do
+                begin
+                        j := integer(inval[i]) and 15;
+                        hex := hex + hc[j];
+                        j := (integer(inval[i]) >> 4) and 15;
+                        hex := hex + hc[j];
+                end;
+        end;
+
+        function ihex(inval: ansistring): cquad;
+        var
+                i, j: integer;
+                ch: ansichar;
+        begin
+                for i := 0 to qupper do
+                begin
+                        if length(inval) < 2 then break;
+                        ch := getFirst(inval);
+                        j := pos(ch, hc);
+                        ch := getFirst(inval);
+                        j := (j << 4) or pos(ch, hc);
+                        ihex[i] := char(j);
+                end;
+                l := i; (* pointer stall *)
+                cc := inval;
+        end;
 
         procedure initDict();
         var
@@ -136,7 +181,7 @@ implementation
                 match(copy(a, 0, length(a) - 1)); (* force match find of index *)
                 add := didx;
                 if dmax > qupper then exit; (* keep dictionary option *)
-                dict[dmax].match := a;
+                if dict[dmax].match = '' then dict[dmax].match := a; (* curtail refill speed *)
                 if dict[add].extend <> add then
                         dict[dmax].others := dict[add].extend;
                 dict[add].extend := dmax;
@@ -162,12 +207,6 @@ implementation
                                 lzw := lzw + inval[i]; (* and character *)
                         end;
                 end;
-        end;
-
-        function getFirst(var inval: ansistring): ansichar;
-        begin
-                getFirst := pchar(inval)[0];
-                inval := copy(inval, 1, length(inval));
         end;
 
         function ilzw(inval: ansistring; d: boolean): cquad;
