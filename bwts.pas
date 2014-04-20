@@ -115,7 +115,9 @@ implementation
                 begin
                         if length(inval) < 2 then break;
                         ch := getFirst(inval);
-                        if f and (ch = ' ') or (ch = ansichar(13)) then continue;
+                        if (ch = ' ') or (ch = ansichar(13)) then continue;
+                        if f and (ch <> '0') and (pos(ch, hc) = 0) then continue; (* strip non hex *)
+                        (* otherwise non hex turns to zeros *)
                         j := pos(ch, hc) << 4;
                         ch := getFirst(inval);
                         j := j or pos(ch, hc);
