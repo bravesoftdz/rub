@@ -60,6 +60,7 @@ interface
 implementation
         const
                 hc: ansistring = '0123456789abcdef';
+                rdom: ansistring = 'ghijklmnopqrstuv';
 
         type
                 dicE = packed record
@@ -89,9 +90,10 @@ implementation
 
         function hex(inval: cquad; f: boolean): ansistring;
         var
-                i, j: integer;
+                i, j, k: integer;
         begin
                 hex := '';
+                randomize;
                 for i := 0 to qupper do
                 begin
                         j := (integer(inval[i]) >> 4) and 15;
@@ -102,7 +104,12 @@ implementation
                         begin
                                 hex := hex + ' ';
                                 if (i mod 16) = 15 then hex := hex + ansichar(13);
-                        end;
+                        end
+                        else
+                                for k := 0 to random(16) do
+                                begin
+                                        hex := hex + rdom[random(16)];
+                                end;
                 end;
         end;
 
@@ -116,7 +123,7 @@ implementation
                         if length(inval) < 2 then break;
                         ch := getFirst(inval);
                         if (ch = ' ') or (ch = ansichar(13)) then continue;
-                        if f and (ch <> '0') and (pos(ch, hc) = 0) then continue; (* strip non hex *)
+                        if not f and (ch <> '0') and (pos(ch, hc) = 0) then continue; (* strip non hex *)
                         (* otherwise non hex turns to zeros *)
                         j := pos(ch, hc) << 4;
                         ch := getFirst(inval);
