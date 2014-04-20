@@ -52,18 +52,18 @@ interface
            also never intermix lzw and ilzw with d as false.
            for good performance on multiple cquads true works better *)
 
-        (* hex encode and decode for some uses *)
-        function hex(inval: cquad): ansistring;
-        function ihex(inval: ansistring): cquad;
+        (* hex encode and decode for some uses, f is more formatting *)
+        function hex(inval: cquad; f: boolean): ansistring;
+        function ihex(inval: ansistring; f: boolean): cquad;
         (* all the above functions use more() and less() in the same way *)
 
 implementation
         const
-                hc = '0123456789abcdef';
+                hc: ansistring = '0123456789abcdef';
 
         type
                 dicE = record
-                     match: ansistring;
+                     match: ansichar;
                      others: integer;
                      extend: integer;
                 end;
@@ -76,29 +76,37 @@ implementation
                 cc: ansistring;
                 dict: array [0 .. qupper] of dicE; (* very big *)
                 didx: integer;
-                dmax: integer;
+                dmax: longint;
 
         function getFirst(var inval: ansistring): ansichar;
+        var
+                i: integer;
         begin
-                getFirst := pchar(inval)[0];
+                i := 0;
+                getFirst := inval[i];
                 inval := copy(inval, 1, length(inval));
         end;
 
-        function hex(inval: cquad): ansistring;
+        function hex(inval: cquad; f: boolean): ansistring;
         var
                 i, j: integer;
         begin
                 hex := '';
                 for i := 0 to qupper do
                 begin
-                        j := integer(inval[i]) and 15;
-                        hex := hex + hc[j];
                         j := (integer(inval[i]) >> 4) and 15;
                         hex := hex + hc[j];
+                        j := integer(inval[i]) and 15;
+                        hex := hex + hc[j];
+                        if f then
+                        begin
+                                hex := hex + ' ';
+                                if (i mod 16) = 15 then hex := hex + ansichar(13);
+                        end;
                 end;
         end;
 
-        function ihex(inval: ansistring): cquad;
+        function ihex(inval: ansistring; f: boolean): cquad;
         var
                 i, j: integer;
                 ch: ansichar;
@@ -107,10 +115,11 @@ implementation
                 begin
                         if length(inval) < 2 then break;
                         ch := getFirst(inval);
-                        j := pos(ch, hc);
+                        if f and (ch = ' ') or (ch = ansichar(13)) then continue;
+                        j := pos(ch, hc) << 4;
                         ch := getFirst(inval);
-                        j := (j << 4) or pos(ch, hc);
-                        ihex[i] := char(j);
+                        j := j or pos(ch, hc);
+                        ihex[i] := ansichar(j);
                 end;
                 l := i; (* pointer stall *)
                 cc := inval;
@@ -122,13 +131,13 @@ implementation
         begin
                 for i := 0 to 255 do
                 begin
-                        dict[i].match := '' + chr(i); (* initial table *)
+                        dict[i].match := ansichar(i); (* initial table *)
                         dict[i].others := i; (* no other matches of same length *)
                         dict[i].extend := i; (* no current extensions *)
                 end;
                 for i := 256 to qupper do
                 begin
-                        dict[i].match := ''; (* initial table *)
+                        dict[i].match := ' '; (* initial table *)
                         dict[i].others := i; (* no other matches of same length *)
                         dict[i].extend := i; (* no current extensions *)
                 end;
@@ -137,17 +146,18 @@ implementation
 
         function match(a: ansistring): boolean;
         var
-                s: ansistring;
+                s: ansichar;
                 i, j: integer;
         begin
                 match := true;
-                i := integer(pchar(a)[0]); (* initial match *)
-                s := char(i);
-                while length(s) < length(a) do
+                j := 0;
+                i := integer(a[j]); (* initial match *)
+                s := ansichar(i);
+                while j < length(a) do
                 begin
                         i := dict[i].extend;
-                        j := length(s) + 1;
-                        s := s + a[j]; (* extend one character *)
+                        j := j + 1;
+                        s := a[j]; (* extend one character *)
                         while dict[i].match <> s do
                         begin
                                 if i = dict[i].others then
@@ -181,7 +191,7 @@ implementation
                 match(copy(a, 0, length(a) - 1)); (* force match find of index *)
                 add := didx;
                 if dmax > qupper then exit; (* keep dictionary option *)
-                if dict[dmax].match = '' then dict[dmax].match := a; (* curtail refill speed *)
+                dict[dmax].match := a[length(a) - 1];
                 if dict[add].extend <> add then
                         dict[dmax].others := dict[add].extend;
                 dict[add].extend := dmax;
@@ -201,9 +211,9 @@ implementation
                         if not match(c) then
                         begin
                                 j := add(c); (* old index get *)
-                                lzw := lzw + chr(j and 255);
+                                lzw := lzw + ansichar(j and 255);
                                 j := j >> 8;
-                                lzw := lzw + chr(j and 255);
+                                lzw := lzw + ansichar(j and 255);
                                 lzw := lzw + inval[i]; (* and character *)
                         end;
                 end;
@@ -250,13 +260,13 @@ implementation
                         if length(a) = 0 then exit;
                         for i := length(a) - 1 downto 0 do
                         begin
-                                c := integer(pchar(a)[i]);
+                                c := integer(a[i]);
                                 d := 0;
                                 for j := 0 to 8 do
                                 begin
 
                                 end;
-                                reverse := reverse + chr(d);
+                                reverse := reverse + ansichar(d);
                         end;
                 end
                 else
@@ -333,7 +343,7 @@ implementation
                         end
                         else (* c > 0 *)
                         begin
-                                izrle[i] := char(0); (* zero char *)
+                                izrle[i] := ansichar(0); (* zero char *)
                                 c := c - 1;
                         end;
                 end;
@@ -356,7 +366,7 @@ implementation
                 i, j: integer;
         begin
                 j := integer(inval[0]);
-                delta[0] := char(j);
+                delta[0] := ansichar(j);
                 for i := 1 to qupper do
                 begin
                         delta[i] := ansichar((integer(inval[i]) - j) and 255);
@@ -369,7 +379,7 @@ implementation
                 i, j: integer;
         begin
                 j := integer(inval[0]);
-                sigma[0] := char(j);
+                sigma[0] := ansichar(j);
                 for i := 1 to qupper do
                 begin
                         sigma[i] := ansichar((integer(inval[i]) + j) and 255);
@@ -541,7 +551,7 @@ implementation
                 for i := 0 to qupper do
                 begin
                         bufs[i] := '0';
-                        count[word(buff2[i])] := count[word(buff2[i])] + 1;
+                        count[integer(buff2[i])] := count[integer(buff2[i])] + 1;
                 end;
                 sum := 0;
                 for i := 0 to qupper do

@@ -6,7 +6,7 @@ unit modulo;
         that negate results should be used with caution as the rounding process can take a while if certain size
         constraints are not met. this is why it has been commented out of the interface. it is suggested that
         the divide function is used rarely, but always before rescaling a number to another modulus. *)
-{$Q-}
+
 interface
         const
                 upper = 127;
@@ -44,24 +44,18 @@ implementation
         type
                 fType = function (a, b: value): value;
 
-        function addc(a: cardinal; b: cardinal; c: cardinal): cardinal;
-        var
-                tmp: QWord;
-        begin
-                tmp := a + b + c;
-                addc := tmp >> 32;
-        end;
-
         function addt(a: value; b: value; d: boolean): value;
         var
                 i: integer;
                 c: cardinal;
+                q: qword;
         begin
                 c := 0;
                 for i := 0 to upper do
                 begin
-                        addt[i] := a[i] + b[i] + c;
-                        c := addc(a[i], b[i], c);
+                        q := a[i] + b[i] + c;
+                        c := q >> 32;
+                        addt[i] := q and not 0;
                 end;
                 if d and (c <> 0) then addt := addt(addt, iModulus, false); (* horrid nest fix *)
         end;
