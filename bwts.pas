@@ -209,7 +209,7 @@ implementation
 
         function lzw(inval: cquad; d: boolean): ansistring;
         var
-                i, j: longint;
+                i, j, k: longint;
                 c: ansistring;
         begin
                 if d then initDict();
@@ -219,11 +219,12 @@ implementation
                         c := c + inval[i];
                         if not match(c) then
                         begin
+                                k := dmax; (* last entry *)
                                 j := add(c); (* old index get *)
                                 lzw := lzw + ansichar(j and 255);
                                 j := j >> 8;
                                 lzw := lzw + ansichar(j and 255);
-                                if dmax > 65535 then
+                                if k > 65535 then (* fix for last entry *)
                                         c := inval[i] (* remove dict extend waste *)
                                 else
                                 begin
