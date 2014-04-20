@@ -65,8 +65,8 @@ implementation
         type
                 dicE = packed record
                      match: ansichar;
-                     others: integer;
-                     extend: integer;
+                     others: word;
+                     extend: word;
                 end;
 
         var
@@ -75,8 +75,8 @@ implementation
                 T, count: lquad;
                 l: integer;
                 cc: ansistring;
-                dict: packed array [0 .. qupper] of dicE; (* very big *)
-                didx: integer;
+                dict: packed array [0 .. 65535] of dicE; (* very big *)
+                didx: longint;
                 dmax: longint;
 
         function getFirst(var inval: ansistring): ansichar;
@@ -136,7 +136,7 @@ implementation
 
         procedure initDict();
         var
-                i: integer;
+                i: longint;
         begin
                 for i := 0 to 255 do
                 begin
@@ -144,7 +144,7 @@ implementation
                         dict[i].others := i; (* no other matches of same length *)
                         dict[i].extend := i; (* no current extensions *)
                 end;
-                for i := 256 to qupper do
+                for i := 256 to 65535 do
                 begin
                         dict[i].match := ' '; (* initial table *)
                         dict[i].others := i; (* no other matches of same length *)
@@ -156,7 +156,7 @@ implementation
         function match(a: ansistring): boolean;
         var
                 s: ansichar;
-                i, j: integer;
+                i, j: longint;
         begin
                 match := true;
                 j := 0;
@@ -181,9 +181,9 @@ implementation
                 end;
         end;
 
-        procedure curtail(i: integer);
+        procedure curtail(i: longint);
         var
-                j: integer;
+                j: longint;
         begin
                 for j := 0 to i - 1 do
                 begin
@@ -195,11 +195,11 @@ implementation
                 dmax := i; (* pointer reset *)
         end;
 
-        function add(a: ansistring): integer;
+        function add(a: ansistring): longint;
         begin
                 match(copy(a, 0, length(a) - 1)); (* force match find of index *)
                 add := didx;
-                if dmax > qupper then exit; (* keep dictionary option *)
+                if dmax > 65535 then exit; (* keep dictionary option *)
                 dict[dmax].match := a[length(a) - 1];
                 if dict[add].extend <> add then
                         dict[dmax].others := dict[add].extend;
@@ -209,7 +209,7 @@ implementation
 
         function lzw(inval: cquad; d: boolean): ansistring;
         var
-                i, j: integer;
+                i, j: longint;
                 c: ansistring;
         begin
                 if d then initDict();
@@ -223,7 +223,7 @@ implementation
                                 lzw := lzw + ansichar(j and 255);
                                 j := j >> 8;
                                 lzw := lzw + ansichar(j and 255);
-                                if dmax > qupper then
+                                if dmax > 65535 then
                                         c := inval[i] (* remove dict extend waste *)
                                 else
                                 begin
@@ -237,7 +237,7 @@ implementation
         function ilzw(inval: ansistring; d: boolean): cquad;
         var
                 ch: ansichar;
-                i, j, k, m: integer;
+                i, j, k, m: longint;
                 res: ansistring;
         begin
                 if d then initDict();
@@ -263,7 +263,7 @@ implementation
                                         end;
                                 end;
                         end;
-                        if dmax <= qupper then
+                        if dmax <= 65535 then
                         begin
                                 if length(inval) = 0 then break;
                                 res := res + getfirst(inval); (* dictionary not full *)
