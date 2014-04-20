@@ -214,7 +214,13 @@ implementation
                                 lzw := lzw + ansichar(j and 255);
                                 j := j >> 8;
                                 lzw := lzw + ansichar(j and 255);
-                                lzw := lzw + inval[i]; (* and character *)
+                                if dmax > qupper then
+                                        c := inval[i] (* remove dict extend waste *)
+                                else
+                                begin
+                                        lzw := lzw + inval[i]; (* and character *)
+                                        c := ''; (* new string *)
+                                end;
                         end;
                 end;
         end;
@@ -222,20 +228,39 @@ implementation
         function ilzw(inval: ansistring; d: boolean): cquad;
         var
                 ch: ansichar;
-                i, j, k: integer;
+                i, j, k, m: integer;
                 res: ansistring;
         begin
                 if d then initDict();
                 k := dmax; (* for curtailing retry later *)
                 i := 0; (* index *)
-                while length(inval) > 2 do (* got a valid encoding *)
+                while length(inval) > 1 do (* got a valid encoding *)
                 begin
                         ch := getFirst(inval);
                         j := integer(ch);
                         ch := getFirst(inval);
                         j := j + (integer(ch) << 8); (* get pointer *)
-                        res := dict[j].match + getfirst(inval);
-                        j := add(res);
+                        (* build result *)
+                        res := dict[j].match; (* last letter *)
+                        while j > 255 do
+                        begin
+                                for m := j - 1 downto 0 do
+                                begin
+                                        if dict[m].others = j then j := m; (* follow other chain *)
+                                        if dict[m].extend = j then
+                                        begin
+                                                j := m;
+                                                res := dict[m].match + res; (* a previous character *)
+                                        end;
+                                end;
+                        end;
+                        if dmax <= qupper then
+                        begin
+                                if length(inval) = 0 then break;
+                                res := res + getfirst(inval); (* dictionary not full *)
+                                j := add(res);
+                        end;
+                        (* write out *)
                         while length(res) > 0 do
                         begin
                                 if i > qupper then break;
