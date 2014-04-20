@@ -6,6 +6,7 @@ Free Pascal Implementation of the Rubikon
 
   * 2014-04-11 development and crypto.pas started.
   * 2014-04-17 modulo.pas and crypto.pas compile, not tested, .gitignore added, sorter and bwts still in Java.
+  * 2014-04-20 lzw in bwts.pas with full dictionary optimization wrote. happy easter.
 
 The URL https://sites.google.com/site/rubikcompression/home contains details of the method.
 The repo is arranged into units so that others may find utility in the separate units.
