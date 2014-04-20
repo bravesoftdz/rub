@@ -13,7 +13,20 @@ unit bwts;
  * modified april 2014 into pascal too
  *)
 
-(* added delta coder and ZRLE coder *)
+(* added delta coder, lzw coder and ZRLE coder *)
+
+(* the lzw coder has a 64K dictionary size, and takes a while to decode due to the
+   compact representation. this may actually be better in data cache limited code.
+   when the dictionary is full, the emission of characters which expand the dictionary
+   is stopped, saving on data size. reinitializing the dictionary is your option
+   but m ust be sychronized so decode is the inverse of encode.
+
+   using these routines in combination will lead to effective data compression of
+   the entropic variety. this unit then contains much more than bwts, and is enough
+   to make all kind of fixed symbol width coders. arithmetic or huffmann coding is
+   not included. the reverse function is provided for the rubikon.
+
+   enjoy ! *)
 
 interface
         uses sorter;     (* to sort one lquad = array [0 .. qupper] of integer *)
