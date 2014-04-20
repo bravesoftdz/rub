@@ -9,7 +9,7 @@ interface
                 qupper = (64 * (qvindexer + 1) - 1); (* block size 32K *)
         type
                 compare = function(i, j: integer): boolean;
-                lquad = array [0 .. qupper] of integer;
+                lquad = packed array [0 .. qupper] of integer;
 
         function sort(a: lquad; w: compare): lquad;
         function lessThan(i, j: integer): boolean;
@@ -20,7 +20,7 @@ implementation
 
         function lessThan(i, j: integer): boolean;
         begin
-                lessthan := index[i]<index[j];
+                lessthan := index[i] < index[j];
         end;
 
         procedure swap(i, j: integer);

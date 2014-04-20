@@ -19,7 +19,7 @@ interface
         uses sorter;     (* to sort one lquad = array [0 .. qupper] of integer *)
 
         type
-                cquad = array [0 .. qupper] of ansichar;
+                cquad = packed array [0 .. qupper] of ansichar;
 
         function bwts(inval: cquad): cquad;
         function ibwts(inval: cquad): cquad;
@@ -62,7 +62,7 @@ implementation
                 hc: ansistring = '0123456789abcdef';
 
         type
-                dicE = record
+                dicE = packed record
                      match: ansichar;
                      others: integer;
                      extend: integer;
@@ -74,7 +74,7 @@ implementation
                 T, count: lquad;
                 l: integer;
                 cc: ansistring;
-                dict: array [0 .. qupper] of dicE; (* very big *)
+                dict: packed array [0 .. qupper] of dicE; (* very big *)
                 didx: integer;
                 dmax: longint;
 
