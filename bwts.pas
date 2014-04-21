@@ -222,7 +222,7 @@ implementation
 
         function lzw(inval: cquad; d: boolean): ansistring;
         var
-                i, j, k: longint;
+                i, j: longint;
                 c: ansistring;
         begin
                 if d then initDict();
@@ -232,58 +232,75 @@ implementation
                         c := c + inval[i];
                         if not match(c) then
                         begin
-                                k := dmax; (* last entry *)
                                 j := add(c); (* old index get *)
                                 lzw := lzw + ansichar(j and 255);
                                 j := j >> 8;
                                 lzw := lzw + ansichar(j and 255);
-                                if k > 65535 then (* fix for last entry *)
-                                        c := inval[i] (* remove dict extend waste *)
-                                else
+                                c := inval[i];
+                        end;
+                end;
+                j := didx; (* final match *)
+                lzw := lzw + ansichar(j and 255);
+                j := j >> 8;
+                lzw := lzw + ansichar(j and 255);
+        end;
+
+        function outlzw(j: longint): ansistring;
+        var
+                m: longint;
+        begin
+                outlzw := ''; (* first *)
+                while j > 255 do
+                begin
+                        for m := j - 1 downto 0 do
+                        begin
+                                if dict[m].others = j then j := m; (* follow other chain *)
+                                if dict[m].extend = j then
                                 begin
-                                        lzw := lzw + inval[i]; (* and character *)
-                                        c := ''; (* new string *)
+                                        j := m;
+                                        outlzw := dict[m].match + outlzw; (* a previous character *)
                                 end;
                         end;
                 end;
+
         end;
 
         function ilzw(inval: ansistring; d: boolean): cquad;
         var
                 ch: ansichar;
-                i, j, k, m: longint;
-                res: ansistring;
+                i, j, k: longint;
+                res, prev, pat, tmp: ansistring;
         begin
                 if d then initDict();
                 k := dmax; (* for curtailing retry later *)
-                i := 0; (* index *)
+                ch := getFirst(inval);
+                j := integer(ch);
+                ch := getFirst(inval);
+                j := j + (integer(ch) << 8); (* get pointer *)
+                res := outlzw(j);
+                prev := res;
+                i := 0;
                 while length(inval) > 1 do (* got a valid encoding *)
                 begin
                         ch := getFirst(inval);
                         j := integer(ch);
                         ch := getFirst(inval);
                         j := j + (integer(ch) << 8); (* get pointer *)
-                        (* build result *)
-                        res := dict[j].match; (* last letter *)
-                        while j > 255 do
+                        if j >= dmax then (* latest *)
                         begin
-                                for m := j - 1 downto 0 do
-                                begin
-                                        if dict[m].others = j then j := m; (* follow other chain *)
-                                        if dict[m].extend = j then
-                                        begin
-                                                j := m;
-                                                res := dict[m].match + res; (* a previous character *)
-                                        end;
-                                end;
-                        end;
-                        if dmax <= 65535 then
+                                tmp := prev;
+                                pat := prev;
+                                pat := pat + getFirst(prev);
+                                prev := tmp;
+                        end
+                        else
                         begin
-                                if length(inval) = 0 then break;
-                                res := res + getfirst(inval); (* dictionary not full *)
-                                j := add(res);
+                                pat := outlzw(j);
                         end;
-                        (* write out *)
+                        res := res + pat;
+                        tmp := pat;
+                        add(prev + getFirst(pat));
+                        prev := tmp;
                         while length(res) > 0 do
                         begin
                                 if i > qupper then break;
