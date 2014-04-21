@@ -147,6 +147,23 @@ implementation
                 cc := inval;
         end;
 
+        function morph(i: longint): ansistring;
+        begin
+                morph := morph + ansichar(i and 255);
+                i := i >> 8;
+                morph := morph + ansichar(i and 255);
+        end;
+
+        function imorph(var a: ansistring): longint;
+        var
+                ch: ansichar;
+        begin
+                ch := getFirst(a);
+                imorph := integer(ch);
+                ch := getFirst(a);
+                imorph := imorph + (integer(ch) << 8); (* get pointer *)
+        end;
+
         procedure initDict();
         var
                 i: longint;
@@ -233,16 +250,12 @@ implementation
                         if not match(c) then
                         begin
                                 j := add(c); (* old index get *)
-                                lzw := lzw + ansichar(j and 255);
-                                j := j >> 8;
-                                lzw := lzw + ansichar(j and 255);
+                                lzw := lzw + morph(j);
                                 c := inval[i];
                         end;
                 end;
                 j := didx; (* final match *)
-                lzw := lzw + ansichar(j and 255);
-                j := j >> 8;
-                lzw := lzw + ansichar(j and 255);
+                lzw := lzw + morph(j);
         end;
 
         function outlzw(j: longint): ansistring;
@@ -267,25 +280,18 @@ implementation
 
         function ilzw(inval: ansistring; d: boolean): cquad;
         var
-                ch: ansichar;
                 i, j, k: longint;
                 res, prev, pat, tmp: ansistring;
         begin
                 if d then initDict();
                 k := dmax; (* for curtailing retry later *)
-                ch := getFirst(inval);
-                j := integer(ch);
-                ch := getFirst(inval);
-                j := j + (integer(ch) << 8); (* get pointer *)
+                j := imorph(inval);
                 res := outlzw(j);
                 prev := res;
                 i := 0;
                 while length(inval) > 1 do (* got a valid encoding *)
                 begin
-                        ch := getFirst(inval);
-                        j := integer(ch);
-                        ch := getFirst(inval);
-                        j := j + (integer(ch) << 8); (* get pointer *)
+                        j := imorph(inval);
                         if j >= dmax then (* latest *)
                         begin
                                 tmp := prev;
