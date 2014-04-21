@@ -88,8 +88,8 @@ implementation
                 l: word;
                 cc: ansistring;
                 dict: packed array [0 .. 65535] of dicE; (* very big *)
-                didx: longint;
-                dmax: longint;
+                didx: longword;
+                dmax: longword;
 
         procedure complete(var inval: cquad);
         begin
