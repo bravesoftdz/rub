@@ -3,7 +3,8 @@ program rub;
 
         (*
 
-rub ifile [[-h] [-f] [-b] [-l] [-s] [-c <.rub>] [-v] [-r]] [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l] [-b] [-h]] ofile
+        rub ifile [[-h] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-v] [-r]]
+                [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-h]] ofile
 
         *)
 
@@ -12,7 +13,7 @@ rub ifile [[-h] [-f] [-b] [-l] [-s] [-c <.rub>] [-v] [-r]] [[-k] [-r] [-v <.rub>
                 -h hex encode/decode
                 -f flip backwards file read (polarity of option inverted by -r on compress)
                 -b compress/deompress using bwts/zrle entropic method
-                -l lzw compress/decompress using large dictionary (-r option reduces dictionary size)
+                -l lzw compress/decompress using large dictionary (-r option reduces dictionary size) "key?"
                 -s digital signature
                 -c encrypt using public keyfile
                 -v digital post signature for vouching of content
