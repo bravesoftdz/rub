@@ -8,33 +8,33 @@ interface
                 (* this makes it twice as many as a quad sized rub value, but it indexes > 255 *)
                 qupper = (64 * (qvindexer + 1) - 1); (* block size 32K *)
         type
-                compare = function(i, j: integer): boolean;
-                lquad = packed array [0 .. qupper] of integer;
+                compare = function(i, j: word): boolean;
+                lquad = packed array [0 .. qupper] of word;
 
         function sort(a: lquad; w: compare): lquad;
-        function lessThan(i, j: integer): boolean;
+        function lessThan(i, j: word): boolean;
 implementation
 
         var
                 index: lquad;
 
-        function lessThan(i, j: integer): boolean;
+        function lessThan(i, j: word): boolean;
         begin
                 lessthan := index[i] < index[j];
         end;
 
-        procedure swap(i, j: integer);
+        procedure swap(i, j: word);
         var
-                t: integer;
+                t: word;
         begin
                 t := index[i];
                 index[i] := index[j];
                 index[j] := t;
         end;
 
-        function partition(left, right, pivotIndex: integer): integer;
+        function partition(left, right, pivotIndex: word): word;
         var
-                storeIndex, i: integer;
+                storeIndex, i: word;
         begin
                 swap(pivotIndex, right);
                 storeIndex := left;
@@ -48,9 +48,9 @@ implementation
                 partition := storeIndex;
         end;
 
-        procedure qsort(left, right: integer);
+        procedure qsort(left, right: word);
         var
-                pivotIndex, pivotNewIndex: integer;
+                pivotIndex, pivotNewIndex: word;
         begin
                 if right > left then
                 begin

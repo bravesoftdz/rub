@@ -29,17 +29,13 @@ unit bwts;
    enjoy ! *)
 
 interface
-        uses sorter;     (* to sort one lquad = array [0 .. qupper] of integer *)
+        uses sorter;     (* to sort one lquad = array [0 .. qupper] of word *)
 
         type
                 cquad = packed array [0 .. qupper] of ansichar;
 
         function bwts(inval: cquad): cquad;
         function ibwts(inval: cquad): cquad;
-
-        (* effectively makes runs of any into runs of zeros *)
-        function delta(inval: cquad): cquad;
-        function sigma(inval: cquad): cquad;
 
         (* effectively compresses runs of zeros *)
         function zrle(inval: cquad; b: boolean): ansistring;
@@ -49,13 +45,16 @@ interface
         function more(): ansistring;
         (* if not empty then izrle did not use all inval.
            if empty then only a partial decode happened. *)
-        function less(): integer;
+        function less(): word;
         (* if equals qupper, a full cquad was decoded by izrle.
            if less than qupper, this is the buffer end point.
            note: try a larger input string and get a complete block
            if more text is available to make a longer string *)
 
         function reverse(a: ansistring; b: boolean): ansistring;
+
+        procedure complete(var inval: cquad);
+        (* complete the block by filling with zeros *)
 
         (* LZW just for variety *)
         function lzw(inval: cquad; d: boolean): ansistring;
@@ -86,15 +85,24 @@ implementation
                 bufs, buff2, output: cquad;
                 xx, idx: lquad;
                 T, count: lquad;
-                l: integer;
+                l: word;
                 cc: ansistring;
                 dict: packed array [0 .. 65535] of dicE; (* very big *)
                 didx: longint;
                 dmax: longint;
 
+        procedure complete(var inval: cquad);
+        begin
+                while l <= qupper do
+                begin
+                        inval[l] := ansichar(0);
+                        l := l + 1;
+                end;
+        end;
+
         function getFirst(var inval: ansistring): ansichar;
         var
-                i: integer;
+                i: word;
         begin
                 i := 0;
                 getFirst := inval[i];
@@ -103,15 +111,15 @@ implementation
 
         function hex(inval: cquad; f: boolean): ansistring;
         var
-                i, j, k: integer;
+                i, j, k: word;
         begin
                 hex := '';
                 randomize;
                 for i := 0 to qupper do
                 begin
-                        j := (integer(inval[i]) >> 4) and 15;
+                        j := (word(inval[i]) >> 4) and 15;
                         hex := hex + hc[j];
-                        j := integer(inval[i]) and 15;
+                        j := word(inval[i]) and 15;
                         hex := hex + hc[j];
                         if f then
                         begin
@@ -128,7 +136,7 @@ implementation
 
         function ihex(inval: ansistring; f: boolean): cquad;
         var
-                i, j: integer;
+                i, j: word;
                 ch: ansichar;
         begin
                 for i := 0 to qupper do
@@ -149,7 +157,7 @@ implementation
 
         function morph(i: longint): ansistring;
         begin
-                morph := morph + ansichar(i and 255);
+                morph := ansichar(i and 255);
                 i := i >> 8;
                 morph := morph + ansichar(i and 255);
         end;
@@ -159,9 +167,9 @@ implementation
                 ch: ansichar;
         begin
                 ch := getFirst(a);
-                imorph := integer(ch);
+                imorph := word(ch);
                 ch := getFirst(a);
-                imorph := imorph + (integer(ch) << 8); (* get pointer *)
+                imorph := imorph or (word(ch) << 8); (* get pointer *)
         end;
 
         procedure initDict();
@@ -190,7 +198,7 @@ implementation
         begin
                 match := true;
                 j := 0;
-                i := integer(a[j]); (* initial match *)
+                i := word(a[j]); (* initial match *)
                 s := ansichar(i);
                 while j < length(a) do
                 begin
@@ -318,12 +326,12 @@ implementation
                 (* check not enough *)
                 l := i; (* pointer stall *)
                 cc := inval;
-                if i <= qupper then curtail(k);
+                if (i <= qupper) and not d then curtail(k); (* restore dictionary for retry with more input *)
         end;
 
         function reverse(a: ansistring; b: boolean): ansistring;
         var
-                i, j, c, d: integer;
+                i, j, c, d: word;
         begin
                 if b then
                 begin
@@ -331,7 +339,7 @@ implementation
                         if length(a) = 0 then exit;
                         for i := length(a) - 1 downto 0 do
                         begin
-                                c := integer(a[i]);
+                                c := word(a[i]);
                                 d := 0;
                                 for j := 0 to 8 do
                                 begin
@@ -344,20 +352,48 @@ implementation
                         reverse := a;
         end;
 
+        function delta(inval: cquad): cquad;
+        var
+                i, j: word;
+        begin
+                j := word(inval[0]);
+                delta[0] := ansichar(j);
+                for i := 1 to qupper do
+                begin
+                        delta[i] := ansichar((word(inval[i]) - j) and 255);
+                        j := word(inval[i]);
+                end;
+        end;
+
+        function sigma(inval: cquad): cquad;
+        var
+                i, j: word;
+        begin
+                j := word(inval[0]);
+                sigma[0] := ansichar(j);
+                for i := 1 to qupper do
+                begin
+                        sigma[i] := ansichar((word(inval[i]) + j) and 255);
+                        j := word(sigma[i]);
+                end;
+
+        end;
+
         function zrle(inval: cquad; b: boolean): ansistring;
         var
-                i, c: integer;
+                i, c: word;
         begin
                 zrle := '';
                 c := 0;
+                if b then inval := delta(inval);
                 for i := 0 to qupper do
                 begin
-                        if (integer(inval[i]) <> 0) or not b then
+                        if (word(inval[i]) <> 0) or not b then
                         begin
                                 if c <> 0 then
                                 begin
                                         zrle := zrle + ansichar(0);
-                                        zrle := zrle + ansichar(c);
+                                        zrle := zrle + ansichar(c - 1);
                                         c := 0;
                                 end;
                                 zrle := zrle + inval[i];
@@ -365,7 +401,7 @@ implementation
                         else
                         begin
                                 c := c + 1;
-                                if c = 256 then (* continue *)
+                                if c = 257 then (* continue *)
                                 begin
                                         zrle := zrle + ansichar(0);
                                         zrle := zrle + ansichar(255);
@@ -376,30 +412,24 @@ implementation
                 if c <> 0 then (* final run *)
                 begin
                         zrle := zrle + ansichar(0);
-                        zrle := zrle + ansichar(c);
-                end;
-                (* terminator *)
-                if b then
-                begin
-                        zrle := zrle + ansichar(0);
-                        zrle := zrle + ansichar(0);
+                        zrle := zrle + ansichar(c - 1);
                 end;
         end;
 
         function izrle(inval: ansistring; b: boolean): cquad;
         var
-                i, c: integer;
+                i, c: word;
                 ch: ansichar;
         begin
                 c := 0;
                 for i := 0 to qupper do
                 begin
-                        if c = 0  then
+                        if c = 0 then
                         begin
                                 if length(inval) = 0 then
                                         break;
                                 ch := getFirst(inval);
-                                if (integer(ch) <> 0) or not b then
+                                if (word(ch) <> 0) or not b then
                                 begin
                                         izrle[i] := ch;
                                 end
@@ -407,9 +437,7 @@ implementation
                                 begin
                                         if length(inval) = 0 then
                                                 break;
-                                        c := integer(getFirst(inval));
-                                        if c = 0 then (* terminal *)
-                                                break;
+                                        c := word(getFirst(inval)) + 1;
                                 end;
                         end
                         else (* c > 0 *)
@@ -420,6 +448,7 @@ implementation
                 end;
                 l := i; (* pointer stall *)
                 cc := inval;
+                if b then izrle := sigma(izrle);
         end;
 
         function more(): ansistring;
@@ -427,42 +456,15 @@ implementation
                 more := cc;
         end;
 
-        function less(): integer;
+        function less(): word;
         begin
                 less := l;
         end;
 
-        function delta(inval: cquad): cquad;
-        var
-                i, j: integer;
-        begin
-                j := integer(inval[0]);
-                delta[0] := ansichar(j);
-                for i := 1 to qupper do
-                begin
-                        delta[i] := ansichar((integer(inval[i]) - j) and 255);
-                        j := integer(inval[i]);
-                end;
-        end;
-
-        function sigma(inval: cquad): cquad;
-        var
-                i, j: integer;
-        begin
-                j := integer(inval[0]);
-                sigma[0] := ansichar(j);
-                for i := 1 to qupper do
-                begin
-                        sigma[i] := ansichar((integer(inval[i]) + j) and 255);
-                        j := integer(sigma[i]);
-                end;
-
-        end;
-
-        procedure modBufs(ass, aE: integer; m: boolean);
+        procedure modBufs(ass, aE: word; m: boolean);
         var
                 ch: ansichar;
-                p1, i: integer;
+                p1, i: word;
         begin
                 ch := buff2[aE];
                 p1 := aE;
@@ -482,9 +484,9 @@ implementation
                 xx[aE] := ass;
         end;
 
-        function lessThanC(i, j: integer; s: boolean): boolean;
+        function lessThanC(i, j: word; s: boolean): boolean;
         var
-                iold, jold, ic, jc: integer;
+                iold, jold, ic, jc: word;
         begin
                 iold := i;
                 jold := j;
@@ -558,14 +560,14 @@ implementation
                 lessThanC := i < j;
         end;
 
-        function lessThanB(i, j: integer): boolean;
+        function lessThanB(i, j: word): boolean;
         begin
                 lessThanB := lessThanC(i, j, false);//sorter thing!!
         end;
 
-        procedure part_cycle(startS, endS: integer);
+        procedure part_cycle(startS, endS: word);
         var
-                Ns, Ts, i: integer;
+                Ns, Ts, i: word;
         begin
                 Ns := endS;
                 modBufs(startS, endS, false);
@@ -597,7 +599,7 @@ implementation
 
         function bwts(inval: cquad): cquad;
         var
-                i: integer;
+                i: word;
         begin
                 buff2 := inval;
                 for i := 0 to qupper do
@@ -614,7 +616,7 @@ implementation
 
         function ibwts(inval: cquad): cquad;
         var
-                i, j, k, sum: integer;
+                i, j, k, sum: word;
         begin
                 buff2 := inval;
                 for i := 0 to qupper do
@@ -622,7 +624,7 @@ implementation
                 for i := 0 to qupper do
                 begin
                         bufs[i] := '0';
-                        count[integer(buff2[i])] := count[integer(buff2[i])] + 1;
+                        count[word(buff2[i])] := count[word(buff2[i])] + 1;
                 end;
                 sum := 0;
                 for i := 0 to qupper do
@@ -633,7 +635,7 @@ implementation
                 end;
                 for i := 0 to qupper do
                 begin
-                        j := integer(buff2[i]);
+                        j := word(buff2[i]);
                         T[count[j] + xx[j]] := i;
                         count[j] := count[j] + 1;
                 end;
