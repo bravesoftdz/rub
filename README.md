@@ -9,7 +9,7 @@ Free Pascal Implementation of the Rubikon
   * 2014-04-20 lzw in bwts.pas with full dictionary optimization wrote. happy easter.
   * 2014-04-21 settled on a command line structure
 
-rub ifile [[-h] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-v] [-r]] [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-h]] ofile
+rub [ifile [-i <.inc>] [[-h[h]] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-v] [-r]] [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-h[h]]] ofile]
 
 The URL https://sites.google.com/site/rubikcompression/home contains details of the method.
 The repo is arranged into units so that others may find utility in the separate units.

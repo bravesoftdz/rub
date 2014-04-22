@@ -385,7 +385,7 @@ implementation
         begin
                 zrle := '';
                 c := 0;
-                if b then inval := delta(inval);
+                if b then inval := delta(bwts(inval));
                 for i := 0 to qupper do
                 begin
                         if (word(inval[i]) <> 0) or not b then
@@ -448,7 +448,7 @@ implementation
                 end;
                 l := i; (* pointer stall *)
                 cc := inval;
-                if b then izrle := sigma(izrle);
+                if b then izrle := ibwts(sigma(izrle));
         end;
 
         function more(): ansistring;

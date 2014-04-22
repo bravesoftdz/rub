@@ -3,14 +3,16 @@ program rub;
 
         (*
 
-        rub ifile [[-h] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-v] [-r]]
-                [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-h]] ofile
+        rub [ifile [-i <.inc>] [[-h[h]] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-v] [-r]]
+                [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-h[h]]] ofile]
 
         *)
 
         (* the command line options follow a pipe structure from ifile to ofile without the repeats of inverse function
 
+                -i include file of operations
                 -h hex encode/decode
+                -hh more cryptic hex
                 -f flip backwards file read (polarity of option inverted by -r on compress)
                 -b compress/deompress using bwts/zrle entropic method
                 -l lzw compress/decompress using large dictionary (-r option reduces dictionary size) "key?"
