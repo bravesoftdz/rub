@@ -3,19 +3,21 @@ program rub;
 
         (*
 
-        rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-s] [-r]
-                [-k [-r] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-j] [-h] [-k] ] ] ofile]
+        rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-x] [-b] [-l <.txt>] [-g] [-s] [-c <.rub>] [-s] [-r]
+                [-k [-r] [-g] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-x] [-j] [-h] [-k] ] ] ofile]
 
         *)
 
         (* the command line options follow a pipe structure from ifile to ofile without the repeats of inverse function
 
                 -i include file of operations (list of switches and files, one round per line)
+                -x add some meta information to be able to recover exact size of files
                 -h hex encode/decode
                 -j more cryptic hex
                 -f flip backwards file read (polarity of option inverted by -r on compress, no direct inverse)
                 -b compress/deompress using bwts/zrle entropic method
                 -l lzw compress/decompress using large dictionary (-r option reduces dictionary size) "key?"
+                -g flip key from rsa to elgamal
                 -s digital signature
                 -c encrypt using public keyfile
                 -r the rubikon (do perform rubikon compression, has to be this way for pipe test)
