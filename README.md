@@ -8,8 +8,17 @@ Free Pascal Implementation of the Rubikon
   * 2014-04-17 modulo.pas and crypto.pas compile, not tested, .gitignore added, sorter and bwts still in Java.
   * 2014-04-20 lzw in bwts.pas with full dictionary optimization wrote. happy easter.
   * 2014-04-21 settled on a command line structure
+  * 2014-04-22 improved CLI structure
 
-rub [ifile [-i <.inc>] [[-h[h]] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-v] [-r]] [[-k] [-r] [-v <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-h[h]]] ofile]
+*rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-b] [-l <.txt>] [-s] [-c <.rub>] [-s] [-r]
+                [-k [-r] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-j] [-h] [-k] ] ] ofile]*
+
+The rub utility works as a block pipe between two files. The -k option reverses the pipe operations, and
+the second -k normalizes this back. The above command line then does have an error, in the optional
+terminal -k not being used before -i and the like. The option order is not too important (except -k),
+but it will change what is done. Consult the rub.pas source file for more information. The sequence of
+files for the options is fixed, although the options may be combined like *-ihbl <.inc> <.txt>* for
+the sake of efficiency.
 
 The URL https://sites.google.com/site/rubikcompression/home contains details of the method.
 The repo is arranged into units so that others may find utility in the separate units.
