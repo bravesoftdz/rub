@@ -40,6 +40,11 @@ Implementation
 
 uses BaseUnix ,unix, termio;
 
+{
+  The definitions of TextRec and FileRec are in separate files.
+}
+{$i textrec.inc}
+
 Const
   OldTextAttr : byte = $07;
 Var
@@ -107,10 +112,7 @@ Function XY2Ansi(x,y,ox,oy:longint):String;
   Returns a string with the escape sequences to go to X,Y on the screen
 }
 Begin
-  { in case of potential ox overflow, send full position information
-    (mantis #20880) }
-  if (y=oy) and
-     (ox<>$ff) then
+  if y=oy then
    begin
      if x=ox then
       begin
@@ -1247,7 +1249,7 @@ begin
 end;
 
 
-Procedure CrtWrite(Var F: TextRec);
+Function CrtWrite(Var F: TextRec): Integer;
 {
   Top level write function for CRT
 }
@@ -1271,10 +1273,11 @@ Begin
    end;
 
   ttySetFlush(oldFLush);
+  CrtWrite:=0;
 End;
 
 
-Procedure CrtRead(Var F: TextRec);
+Function CrtRead(Var F: TextRec): Integer;
 {
   Read from CRT associated file.
 }
@@ -1320,6 +1323,7 @@ Begin
         end;
       until (c in [#10,#13]) or (i >= F.BufSize);
       F.BufEnd := i;
+      CrtRead := 0;
       exit;
     end;
   F.BufEnd:=fpRead(F.Handle, F.BufPtr^, F.BufSize);
@@ -1333,24 +1337,27 @@ Begin
   if not(OutputRedir or InputRedir) then
     CrtWrite(F)
   else F.BufPos := 0;
+  CrtRead:=0;
 End;
 
 
-Procedure CrtReturn(Var F:TextRec);
+Function CrtReturn(Var F:TextRec):Integer;
 Begin
+  CrtReturn:=0;
 end;
 
 
-Procedure CrtClose(Var F: TextRec);
+Function CrtClose(Var F: TextRec): Integer;
 {
   Close CRT associated file.
 }
 Begin
   F.Mode:=fmClosed;
+  CrtClose:=0;
 End;
 
 
-Procedure CrtOpen(Var F: TextRec);
+Function CrtOpen(Var F: TextRec): Integer;
 {
   Open CRT associated file.
 }
@@ -1367,6 +1374,7 @@ Begin
      TextRec(F).FlushFunc:=@CrtReturn;
    end;
   TextRec(F).CloseFunc:=@CrtClose;
+  CrtOpen:=0;
 End;
 
 

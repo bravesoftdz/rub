@@ -1491,8 +1491,8 @@ begin
   Inc(R.A.Y,3); Inc(R.B.Y,3);
   if AOptions and fdHelpButton <> 0 then
   begin
-    //Insert(New(PButton, Init(R,slHelp,cmHelp, bfNormal)));
-    //Inc(R.A.Y,3); Inc(R.B.Y,3);
+    Insert(New(PButton, Init(R,slHelp,cmHelp, bfNormal)));
+    Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
 
   R.Assign(1,16,48,18);
@@ -2005,8 +2005,8 @@ begin
   Insert(New(PButton, Init(R,slRevert, cmRevert, bfNormal)));
   if AOptions and cdHelpButton <> 0 then
   begin
-    //Inc(R.A.Y,3); Inc(R.B.Y,3);
-    //Insert(New(PButton, Init(R,slHelp, cmHelp, bfNormal)));
+    Inc(R.A.Y,3); Inc(R.B.Y,3);
+    Insert(New(PButton, Init(R,slHelp, cmHelp, bfNormal)));
   end;
 
   if AOptions and cdNoLoadDir = 0 then SetUpDialog;
@@ -2132,14 +2132,14 @@ begin
     P := FExpand(DirInput^.Data^);
     if (Length(P) > 3) and (P[Length(P)] = DirSeparator) then
       Dec(P[0]);
-    {$push}{$I-}
+    {$I-}
     ChDir(P);
     if (IOResult <> 0) then
     begin
       MessageBox(sInvalidDirectory, nil, mfError + mfOkButton);
       Valid := False;
     end;
-    {$pop}
+    {$I+}
   end;
 end;
 
@@ -2342,7 +2342,7 @@ var
   D: Char;
 begin
   D := GetCurDrive;
-  {$push}{$I-}
+  {$I-}
   ChDir(Drive+':');
   if (IOResult = 0) then
   begin
@@ -2350,7 +2350,7 @@ begin
     ChDir(D+':')
   end
   else DriveValid := False;
-  {$pop}
+  {$I+}
 end;
 {$else HAS_DOS_DRIVES}
 begin
@@ -2676,9 +2676,9 @@ var
   Dlg : PEditChDirDialog;
   Rec : DirStr;
 begin
-  {$push}{$I-}
+  {$I-}
   GetDir(0,Dir);
-  {$pop}
+  {$I+}
   Rec := FExpand(ADir);
   Dlg := New(PEditChDirDialog,Init(cdHelpButton,HistoryID));
   if (Application^.ExecuteDialog(Dlg,@Rec) = cmOk) then
@@ -2687,9 +2687,9 @@ begin
     ADir := Rec;
   end
   else SelectDir := False;
-  {$push}{$I-}
+  {$I-}
   ChDir(Dir);
-  {$pop}
+  {$I+}
 end;
 
 {****************************************************************************}
