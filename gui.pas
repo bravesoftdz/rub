@@ -13,60 +13,51 @@ PROGRAM gui;
 {     Customized for unix/linux due to sounds and ...                   }
 { ****************************** END REMARK *** Leon de Boer, 06Nov99 * }
 
-{$I Platform.inc}
-  USES unix, Objects, Drivers, Views, Editors, Menus, Dialogs, App,             { Standard GFV units }
-     FVConsts, Gadgets, TimedDlg, MsgBox, StdDlg;
+uses unix, objects, drivers, views, editors, menus, dialogs, app,             { Standard GFV units }
+     FVConsts, gadgets, timeddlg, msgbox, stddlg;
 
 
-CONST cmAppToolbar = 1000;
-      cmWindow1    = 1001;
-      cmWindow2    = 1002;
-      cmWindow3    = 1003;
-      cmTimedBox   = 1004;
-      cmAscii      = 1010;
-      cmCloseWindow1    = 1101;
-      cmCloseWindow2    = 1102;
-      cmCloseWindow3    = 1103;
+const
+        cmAppToolbar = 1000;
+        cmWindow1    = 1001;
+        cmWindow2    = 1002;
+        cmWindow3    = 1003;
+        cmTimedBox   = 1004;
+        cmCloseWindow1    = 1101;
+        cmCloseWindow2    = 1102;
+        cmCloseWindow3    = 1103;
 
+type
+        PGUIApp = ^GUIApp;
 
-{---------------------------------------------------------------------------}
-{          TTestAppp OBJECT - STANDARD APPLICATION WITH MENU                }
-{---------------------------------------------------------------------------}
-TYPE
-   PTVDemo = ^TTVDemo;
+        { GUIApp }
 
-   { TTVDemo }
-
-   TTVDemo = OBJECT (TApplication)
-        ClipboardWindow: PEditWindow;
-        Clock: PClockView;
-        Heap: PHeapView;
-        P1,P2,P3 : PGroup;
-     {$ifdef TEST}
-        ASCIIChart : PAsciiChart;
-     {$endif TEST}
-      CONSTRUCTOR Init;
-      PROCEDURE Idle; Virtual;
-      PROCEDURE HandleEvent(var Event : TEvent);virtual;
-      PROCEDURE InitMenuBar; Virtual;
-      PROCEDURE InitDeskTop; Virtual;
-      PROCEDURE InitStatusLine; Virtual;
-      PROCEDURE Window1;
-      PROCEDURE Window2;
-      PROCEDURE Window3;
-      PROCEDURE TimedBox;
-      PROCEDURE AsciiWindow;
-      PROCEDURE ShowAboutBox;
-      PROCEDURE NewEditWindow;
-      PROCEDURE OpenFile;
-      PROCEDURE CloseWindow(var P : PGroup);
-    End;
+        GUIApp = OBJECT (TApplication)
+                ClipboardWindow: PEditWindow;
+                Clock: PClockView;
+                Heap: PHeapView;
+                P1,P2,P3 : PGroup;
+                CONSTRUCTOR Init;
+                PROCEDURE Idle; Virtual;
+                PROCEDURE HandleEvent(var Event : TEvent);virtual;
+                PROCEDURE InitMenuBar; Virtual;
+                PROCEDURE InitDeskTop; Virtual;
+                PROCEDURE InitStatusLine; Virtual;
+                PROCEDURE Window1;
+                PROCEDURE Window2;
+                PROCEDURE Window3;
+                PROCEDURE TimedBox;
+                PROCEDURE ShowAboutBox;
+                PROCEDURE NewEditWindow;
+                PROCEDURE OpenFile;
+                PROCEDURE CloseWindow(var P : PGroup);
+        End;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                           TTvDemo OBJECT METHODS                          }
+{                           GUIApp OBJECT METHODS                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-CONSTRUCTOR TTvDemo.Init;
+CONSTRUCTOR GUIApp.Init;
 VAR R: TRect;
 BEGIN
   EditorDialog := @StdEditorDialog;
@@ -89,7 +80,7 @@ BEGIN
   end;
 END;
 
-procedure TTVDemo.Idle;
+procedure GUIApp.Idle;
 
 function IsTileable(P: PView): Boolean; far;
 begin
@@ -97,35 +88,17 @@ begin
     (P^.State and sfVisible <> 0);
 end;
 
-{$ifdef DEBUG}
-Var
-   WasSet : boolean;
-{$endif DEBUG}
 begin
   inherited Idle;
-{$ifdef DEBUG}
-   if WriteDebugInfo then
-     begin
-      WasSet:=true;
-      WriteDebugInfo:=false;
-     end
-   else
-      WasSet:=false;
-   if WriteDebugInfo then
-{$endif DEBUG}
   Clock^.Update;
   Heap^.Update;
-{$ifdef DEBUG}
-   if WasSet then
-     WriteDebugInfo:=true;
-{$endif DEBUG}
   if Desktop^.FirstThat(@IsTileable) <> nil then
     EnableCommands([cmTile, cmCascade])
   else
     DisableCommands([cmTile, cmCascade]);
 end;
 
-PROCEDURE TTVDemo.HandleEvent(var Event : TEvent);
+PROCEDURE GUIApp.HandleEvent(var Event : TEvent);
 BEGIN
    Inherited HandleEvent(Event);                      { Call ancestor }
    If (Event.What = evCommand) Then Begin
@@ -141,7 +114,6 @@ BEGIN
        cmWindow2 : Window2;
        cmWindow3 : Window3;
        cmTimedBox: TimedBox;
-       cmAscii   : AsciiWindow;
        cmCloseWindow1 : CloseWindow(P1);
        cmCloseWindow2 : CloseWindow(P2);
        cmCloseWindow3 : CloseWindow(P3);
@@ -152,10 +124,10 @@ BEGIN
    ClearEvent(Event);
 END;
 
-{--TTvDemo------------------------------------------------------------------}
+{--GUIApp------------------------------------------------------------------}
 {  InitMenuBar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Nov99 LdB       }
 {---------------------------------------------------------------------------}
-PROCEDURE TTVDemo.InitMenuBar;
+PROCEDURE GUIApp.InitMenuBar;
 VAR R: TRect;
 BEGIN
    GetExtent(R);                                      { Get view extents }
@@ -169,7 +141,6 @@ BEGIN
       NewItem('~V~iew Clipboard', '', kbNoKey, cmClipboard, hcNoContext,
       nil)))),                 { Standard edit menu plus view clipboard}
     NewSubMenu('~T~est', 0, NewMenu(
-      NewItem('~A~scii Chart','',kbNoKey,cmAscii,hcNoContext,
       NewItem('Window ~1~','',kbNoKey,cmWindow1,hcNoContext,
       NewItem('Window ~2~','',kbNoKey,cmWindow2,hcNoContext,
       NewItem('Window ~3~','',kbNoKey,cmWindow3,hcNoContext,
@@ -177,7 +148,7 @@ BEGIN
       NewItem('Close Window 1','',kbNoKey,cmCloseWindow1,hcNoContext,
       NewItem('Close Window 2','',kbNoKey,cmCloseWindow2,hcNoContext,
       NewItem('Close Window 3','',kbNoKey,cmCloseWindow3,hcNoContext,
-      Nil))))))))),
+      Nil)))))))),
     NewSubMenu('~W~indow', 0, NewMenu(
       StdWindowMenuItems(Nil)),        { Standard window  menu }
     NewSubMenu('~H~elp', hcNoContext, NewMenu(
@@ -187,35 +158,19 @@ BEGIN
    ))); //end MenuBar
 END;
 
-{--TTvDemo------------------------------------------------------------------}
+{--GUIApp------------------------------------------------------------------}
 {  InitDesktop -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Nov99 LdB       }
 {---------------------------------------------------------------------------}
-PROCEDURE TTvDemo.InitDesktop;
+PROCEDURE GUIApp.InitDesktop;
 VAR R: TRect; {ToolBar: PToolBar;}
 BEGIN
    GetExtent(R);                                      { Get app extents }
    Inc(R.A.Y);               { Adjust top down }
    Dec(R.B.Y);            { Adjust bottom up }
-(*   ToolBar := New(PToolBar, Init(R.A.X*FontWidth,
-     R.A.Y*FontHeight, (R.B.X-R.A.X)*FontWidth, 20,
-     cmAppToolBar));
-   If (ToolBar <> Nil) Then Begin
-     R.A.X := R.A.X*FontWidth;
-     R.A.Y := R.A.Y*FontHeight + 25;
-     R.B.X := -R.B.X*FontWidth;
-     R.B.Y := -R.B.Y*Fontheight;
-     ToolBar^.AddTool(NewToolEntry(cmQuit, True,
-       '20X20EXIT', 'ToolBar.Res'));
-     ToolBar^.AddTool(NewToolEntry(cmNew, True,
-       '20X20NEW', 'ToolBar.Res'));
-     ToolBar^.AddTool(NewToolEntry(cmOpen, True,
-       '20X20LOAD', 'ToolBar.Res'));
-     Insert(ToolBar);
-   End;*)
    Desktop := New(PDeskTop, Init(R));
 END;
 
-procedure TTVDemo.InitStatusLine;
+procedure GUIApp.InitStatusLine;
 var
    R: TRect;
 begin
@@ -240,7 +195,7 @@ begin
   Insert(Heap);
 end;
 
-PROCEDURE TTvDemo.Window1;
+PROCEDURE GUIApp.Window1;
 VAR R: TRect; P: PGroup;
 BEGIN
    { Create a basic window with static text and radio }
@@ -262,28 +217,15 @@ BEGIN
    P1:=P;
 END;
 
-PROCEDURE TTvDemo.AsciiWindow;
+PROCEDURE GUIApp.ShowAboutBox;
 begin
-{$ifdef TEST}
-  if ASCIIChart=nil then
-    begin
-      New(ASCIIChart, Init);
-      Desktop^.Insert(ASCIIChart);
-    end
-  else
-    ASCIIChart^.Focus;
-{$endif TEST}
-end;
-
-PROCEDURE TTVDemo.ShowAboutBox;
-begin
-  MessageBox(#3'Free Vision TUI Framework'#13 +
-    #3'Test/Demo Application'#13+
+  MessageBox(#3'Rubikon GUI Application'#13 +
+    #3'Written in Free Pascal Free Vision'#13+
     #3'(www.freepascal.org)',
     nil, mfInformation or mfOKButton);
 end;
 
-PROCEDURE TTVDemo.NewEditWindow;
+PROCEDURE GUIApp.NewEditWindow;
 var
   R: TRect;
 begin
@@ -291,7 +233,7 @@ begin
   InsertWindow(New(PEditWindow, Init(R, '', wnNoNumber)));
 end;
 
-PROCEDURE TTVDemo.OpenFile;
+PROCEDURE GUIApp.OpenFile;
 var
   R: TRect;
   FileDialog: PFileDialog;
@@ -308,7 +250,7 @@ begin
   end;
 end;
 
-PROCEDURE TTvDemo.TimedBox;
+PROCEDURE GUIApp.TimedBox;
 var
   X: longint;
   S: string;
@@ -325,7 +267,7 @@ begin
   end;
 end;
 
-PROCEDURE TTvDemo.CloseWindow(var P : PGroup);
+PROCEDURE GUIApp.CloseWindow(var P : PGroup);
 BEGIN
   If Assigned(P) then
     BEGIN
@@ -335,7 +277,7 @@ BEGIN
     END;
 END;
 
-PROCEDURE TTvDemo.Window2;
+PROCEDURE GUIApp.Window2;
 VAR R: TRect; P: PGroup;
 BEGIN
    { Create a basic window with check boxes. The  }
@@ -352,7 +294,7 @@ BEGIN
    P2:=P;
 END;
 
-PROCEDURE TTvDemo.Window3;
+PROCEDURE GUIApp.Window3;
 VAR R: TRect; P: PGroup; B: PScrollBar;
     List: PStrCollection; Lb: PListBox;
 BEGIN
@@ -410,32 +352,17 @@ END;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                             MAIN PROGRAM START                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-VAR I: Integer; R: TRect; P: PGroup; MyApp: TTvDemo;
-{$IFDEF OS2PM}
-    {$IFDEF OS_OS2} Message: QMSg; Event: TEvent; {$ENDIF}
-{$ENDIF OS2PM}
+VAR
+        I: Integer;
+        R: TRect;
+        P: PGroup;
+        MyApp: GUIApp;
+
 BEGIN
-   (*SystemPalette := CreateRGBPalette(256);            { Create palette }
-   For I := 0 To 15 Do Begin
-     GetSystemRGBEntry(I, RGB);                       { Get palette entry }
-     AddToRGBPalette(RGB, SystemPalette);             { Add entry to palette }
-   End;*)
 
    play('explode.wav');
    MyApp.Init;                                        { Initialize app }
    MyApp.Run;                                         { Run the app }
-{$IFDEF OS2PM}
-   {$IFDEF OS_OS2}
-   while (MyApp.EndState = 0)
-   AND WinGetMsg(Anchor, Message, 0, 0, 0) Do Begin
-       WinDispatchMsg(Anchor, Message);
-       NextQueuedEvent(Event);
-       If (event.What <>  evNothing)
-         Then MyApp.handleEvent(Event);
-   End;
-   {$ENDIF}
-{$ENDIF OS2PM}
    MyApp.Done;                                        { Dispose of app }
 
-   {DisposeRGBPalette(SystemPalette);}
 END.
