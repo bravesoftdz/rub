@@ -1,54 +1,21 @@
 PROGRAM gui;
 
-{ $UNDEF OS2PM}
-
-{$IFDEF OS2PM}
- {&PMTYPE PM}                                          { FULL GUI MODE }
-{$ENDIF OS2PM}
-
 { ******************************* REMARK ****************************** }
+(* adapted from the example frevision test code. this code will become
+   more interesting over time as the adaptations happen.
+
+                                                                       *)
 {  This is a basic test program to test the app framework. In use will  }
 {  be menus, statuslines, windows, dialogs, scrollbars, statictext,     }
 {  radiobuttons, check boxes, list boxes and input lines.               }
 {                                                                       }
 {  Working compilers:                                                   }
-{     WINDOWS BPW, VP2, Delphi1, FPC WIN (0.9912)                       }
-{     DOS has draw bugs but works for BP and FPC DOS (GO32V2)           }
-{     OS2 dows not work still some PM bits to do                        }
-{                                                                       }
-{  Not working:                                                         }
-{     Delphi3, Delphi5 (sus 4) will compile but Tgroup.ForEach etc U/S. }
-{     Sybil2 Win32 should work but to big for demo mode so unsure!      }
-{                                                                       }
-{  Special things to try out:                                           }
-{    Check out the standard windows minimize etc icons.                 }
-{                                                                       }
-{                                                                       }
-{  Comments:                                                            }
-{    There is alot that may seem more complex than it needs to but      }
-{    I have much more elaborate objects operating such as bitmaps,      }
-{    bitmap buttons, percentage bars etc and they need these hooks.     }
-{    Basically the intention is to be able to port existing TV apps     }
-{    as a start point and then start to optimize and use the new        }
-{    GUI specific objects. I will try to get some documentation         }
-{    done on how everything works because some things are hard to       }
-{    follow in windows.                                                 }
+{     Customized for unix/linux due to sounds and ...                   }
 { ****************************** END REMARK *** Leon de Boer, 06Nov99 * }
 
 {$I Platform.inc}
-  USES
-{$IFDEF OS2PM}
-     {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
-{$ENDIF OS2PM}
-     Objects, Drivers, Views, Editors, Menus, Dialogs, App,             { Standard GFV units }
-     FVConsts,
-     {$ifdef TEST}
-     AsciiTab,
-     {$endif TEST}
-     {$ifdef DEBUG}
-     Gfvgraph,
-     {$endif DEBUG}
-     Gadgets, TimedDlg, MsgBox, StdDlg;
+  USES unix, Objects, Drivers, Views, Editors, Menus, Dialogs, App,             { Standard GFV units }
+     FVConsts, Gadgets, TimedDlg, MsgBox, StdDlg;
 
 
 CONST cmAppToolbar = 1000;
@@ -435,6 +402,11 @@ BEGIN
    End;
 END;
 
+        procedure play(n: ansistring);
+        begin
+                shell('aplay ' + n + ' 2> /dev/null &');
+        end;
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                             MAIN PROGRAM START                            }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -449,6 +421,7 @@ BEGIN
      AddToRGBPalette(RGB, SystemPalette);             { Add entry to palette }
    End;*)
 
+   play('explode.wav');
    MyApp.Init;                                        { Initialize app }
    MyApp.Run;                                         { Run the app }
 {$IFDEF OS2PM}
