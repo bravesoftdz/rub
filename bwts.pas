@@ -37,6 +37,11 @@ interface
         function bwts(inval: cquad): cquad;
         function ibwts(inval: cquad): cquad;
 
+        (* add in size information, or remove it *)
+        function size(inval: cquad; b: boolean): ansistring;
+        function isize(inval: ansistring; b: boolean): cquad;
+        (*  *)
+
         (* effectively compresses runs of zeros *)
         function zrle(inval: cquad; b: boolean): ansistring;
         function izrle(inval: ansistring; b: boolean): cquad;
@@ -92,12 +97,16 @@ implementation
                 dmax: longword;
 
         procedure complete(var inval: cquad);
+        var
+                t: word;
         begin
+                t := l;
                 while l <= qupper do
                 begin
                         inval[l] := ansichar(0);
                         l := l + 1;
                 end;
+                l := t; (* restore *)
         end;
 
         function getFirst(var inval: ansistring): ansichar;
@@ -107,6 +116,32 @@ implementation
                 i := 0;
                 getFirst := inval[i];
                 inval := copy(inval, 1, length(inval));
+        end;
+
+        function size(inval: cquad; b: boolean): ansistring;
+        var
+                i: word;
+        begin
+                size := '';
+                for i := 0 to qupper do
+                begin
+                        size := size + ansichar(inval[i]);
+                end;
+        end;
+
+        function isize(inval: ansistring; b: boolean): cquad;
+        var
+                i: word;
+                ch: ansichar;
+        begin
+                for i := 0 to qupper do
+                begin
+                        if length(inval) = 0 then break;
+                        ch := getFirst(inval);
+                        isize[i] := ch;
+                end;
+                l := i;
+                cc := inval;
         end;
 
         function hex(inval: cquad; f: boolean): ansistring;
