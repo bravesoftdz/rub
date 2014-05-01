@@ -3,8 +3,8 @@ program rub;
 
         (*
 
-        rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-x] [-b] [-l <.txt>] [-g] [-s] [-c <.rub>] [-s] [-r]
-                [-k [-r] [-g] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-x] [-j] [-h] [-k] ] ] ofile]
+        rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-x] [-p] [-b] [-l <.txt>] [-g] [-s] [-c <.rub>] [-s] [-r]
+                [-k [-r] [-g] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-p] [-x] [-j] [-h] [-k] ] ] ofile]
 
         *)
 
@@ -12,6 +12,7 @@ program rub;
 
                 -i include file of operations (list of switches and files, one round per line)
                 -x add some meta information to be able to recover exact size of files
+                -p add some CRC polynomial check information
                 -h hex encode/decode
                 -j more cryptic hex
                 -f flip backwards file read (polarity of option inverted by -r on compress, no direct inverse)

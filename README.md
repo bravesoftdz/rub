@@ -9,9 +9,10 @@ Free Pascal Implementation of the Rubikon
   * 2014-04-20 lzw in bwts.pas with full dictionary optimization wrote. happy easter.
   * 2014-04-21 settled on a command line structure
   * 2014-04-22 improved CLI structure
+  * 2014-05-01 added CRC option to CLI spec
 
-*rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-x] [-b] [-l <.txt>] [-g] [-s] [-c <.rub>] [-s] [-r]
-                [-k [-r] [-g] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-x] [-j] [-h] [-k] ] ] ofile]*
+*rub [ifile [ [-i <.inc>] [-h] [-j] [-f] [-x] [-p] [-b] [-l <.txt>] [-g] [-s] [-c <.rub>] [-s] [-r]
+                [-k [-r] [-g] [-s <.rub>] [-c] [-s <.rub>] [-l <.txt>] [-b] [-p] [-x] [-j] [-h] [-k] ] ] ofile]*
 
 The rub utility works as a block pipe between two files. The -k option reverses the pipe operations, and
 the second -k normalizes this back. The above command line then does have an error, in the optional

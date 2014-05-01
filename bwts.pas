@@ -40,7 +40,7 @@ interface
         (* add in size information, or remove it *)
         function size(inval: cquad; b: boolean): ansistring;
         function isize(inval: ansistring; b: boolean): cquad;
-        (*  *)
+        (* b is true for size information, and false for CRC imformation *)
 
         (* effectively compresses runs of zeros *)
         function zrle(inval: cquad; b: boolean): ansistring;
